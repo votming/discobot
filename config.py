@@ -1,2 +1,0 @@
-_bot_token= 'Mjk1MDczNjEwODI4MDg3Mjk2.WNYGtw.9cTn5FwWzirMp5PajNGPT06jDM4'
-bot_token = 'Mjk4NjQ4MTUxMDEzODUxMTM2.WOMHww.lqTdXX_mS9N4XdDS_SGaeR_7jCU'
