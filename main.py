@@ -12,25 +12,12 @@ import os.path
 from pytube import YouTube
 
 from google_images_download import google_images_download
-from simple_image_download import Downloader
 
 wikipedia.set_lang("ru")
 
 number_emojies = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣']
 
-class Test():
-    name = 'my name'
-
-    def __test__(self):
-        print('yo')
-
-t = Test()
-
-
-
-# client = discord.Client()
 voice_channels = {}
-discord.http.API_VERSION = 9
 client = commands.Bot(command_prefix='!', intents=discord.Intents.all())
 _lang = 'ru'
 _speed = 1.3
@@ -83,17 +70,16 @@ def say_message(text, guild_id):
     voice_channels[guild_id]['channel'].play(discord.FFmpegPCMAudio(filename), after=lambda e: play_message(guild_id))
 
 
-
-
 @client.event
 async def on_ready():
     print(client.guilds)
     print('We have logged in as {0.user}'.format(client))
 
+
 @client.event
 async def on_reaction_add(reaction: discord.Reaction, user):
     print('new reactions')
-    request=''
+    request = ''
     try:
         if len(reaction.message.embeds) > 0 and user != client.user:
             async with reaction.message.channel.typing():
@@ -107,13 +93,12 @@ async def on_reaction_add(reaction: discord.Reaction, user):
                 embed = discord.Embed(title=request, description='{}\n{}'.format(summary[0:3500],url))
                 for image in page.images:
                     print(image[-4:])
-                    if (image[-4:] in ['.png', '.jpg', 'jpeg']):
+                    if image[-4:] in ['.png', '.jpg', 'jpeg']:
                         embed.set_image(url=image)
                         break
                 await reaction.message.channel.send(embed=embed)
     except Exception as ex:
-        await reaction.message.channel.send('Ошибка при загрузке статьи (`{}`) {}'.format(request,ex))
-
+        await reaction.message.channel.send('Ошибка при загрузке статьи (`{}`) {}'.format(request, ex))
 
 
 @client.event
@@ -145,11 +130,13 @@ async def on_message(message: discord.Message):
     elif match := re.search('(.+)\?\?(\)\))?([0-9]+)?(\+)?', message.content, re.IGNORECASE):
         await get_google_images(message, match)
 
+
 async def set_name(message, name):
     try:
         print(await message.mentions[0].edit(nick=name))
     except Exception as ex:
         await message.channel.send('Возникла ошибка при при установке имени.\nОшибка: `{}`'.format(ex))
+
 
 async def wiki_get_article(message: discord.Message,query):
     try:
@@ -174,6 +161,7 @@ async def wiki_get_article(message: discord.Message,query):
     '''
     except Exception as ex:
         await message.channel.send('{} (`{}`)'.format(ex,query))
+
 
 async def get_google_images(message, match):
     try:
@@ -216,7 +204,6 @@ async def get_google_images(message, match):
     except SystemExit as ex:
         await message.channel.send(
             'Возникла ошибка при загрузке картинок. \nЗапрос: `{}` \nОшибка: `{}`'.format(query, ex))
-
 
 
 @client.command()
@@ -281,7 +268,7 @@ async def play(ctx: commands.Context, url):
     path = stream.download(output_path='/var/www/discobot/files/videos')
     await message.delete()
     # msg = await ctx.send()
-    #embed = await ctx.send(
+    # embed = await ctx.send(
     #    embed=discord.Embed(title=title, description='Сейчас в эфире: __**{}**__'.format(title), url=url))
 
     if guild_id in voice_channels:
