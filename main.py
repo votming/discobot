@@ -13,6 +13,8 @@ from pytube import YouTube
 
 from google_images_download import google_images_download
 
+from reactions import WIKI_EMBED_TITLE
+
 wikipedia.set_lang("ru")
 
 number_emojies = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣']
@@ -76,29 +78,6 @@ async def on_ready():
     print('We have logged in as {0.user}'.format(client))
 
 
-@client.event
-async def on_reaction_add(reaction: discord.Reaction, user):
-    print('new reactions')
-    request = ''
-    try:
-        if len(reaction.message.embeds) > 0 and user != client.user:
-            async with reaction.message.channel.typing():
-                request = reaction.message.embeds[0].description.split('\n')[number_emojies.index(reaction.emoji)]
-                print(request[3:])
-                request = request[3:]
-                await reaction.message.delete()
-                page = wikipedia.page(request)
-                summary = page.summary
-                url = page.url
-                embed = discord.Embed(title=request, description='{}\n{}'.format(summary[0:3500],url))
-                for image in page.images:
-                    print(image[-4:])
-                    if image[-4:] in ['.png', '.jpg', 'jpeg']:
-                        embed.set_image(url=image)
-                        break
-                await reaction.message.channel.send(embed=embed)
-    except Exception as ex:
-        await reaction.message.channel.send('Ошибка при загрузке статьи (`{}`) {}'.format(request, ex))
 
 
 @client.event
@@ -152,7 +131,7 @@ async def wiki_get_article(message: discord.Message,query):
             response += '{}. {}\n'.format(counter, page)
             counter += 1
 
-        message = await message.channel.send(embed=discord.Embed(title='Выберите тему', description=response))
+        message = await message.channel.send(embed=discord.Embed(title=WIKI_EMBED_TITLE, description=response))
         for emoji in number_emojies:
             await message.add_reaction(emoji)
             '''results = list(search(query, num_results=10))
@@ -334,4 +313,12 @@ async def speed(ctx: commands.Context, speed):
     await ctx.send(message)
 
 
-client.run(config.bot_token)
+#client.run(config.bot_token)
+async def main():
+    await client.load_extension('reactions')
+    await client.load_extension('movies')
+    await client.start(config.bot_token)
+
+if __name__ == '__main__':
+    asyncio.run(main()) #  asyncio.get_event_loop().run_until_complete(main())
+
