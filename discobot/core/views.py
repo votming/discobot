@@ -26,6 +26,15 @@ class MoviesViewSet(ModelViewSet):
         user = User.objects.filter(pk=data['id']).first()
         return user
 
+    def rate_movie(self, request, pk, *args, **kwargs):
+        data = json.loads(request.data)
+        movie = Movie.objects.get(pk=pk)
+        user = self._validate_user(data['user']['id'], data['user'])
+        movie.rankings.remove(user)
+        movie.rankings.add(user, through_defaults={'rating': data['rating']})
+        print(f'rating: {data["rating"]}, user: {user}')
+        return Response('ok')
+
     def set_watched(self, request, pk, *args, **kwargs):
         data = json.loads(request.data)
         movie = Movie.objects.get(pk=pk)

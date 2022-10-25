@@ -26,6 +26,7 @@ class MovieParser:
         movie.rank = json['rank']
         movie.image = json['i']['imageUrl']
         movie.year = json['y']
+        movie.actors = json['s']
 
         return movie
 

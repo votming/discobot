@@ -7,7 +7,7 @@ from config import FILM_EMOJI, FILM_SEEN_EMOJI, FILM_PLAN_TO_WATCH_EMOJI, FILM_R
     BACK_EMOJI
 from models import ParsedMovie
 
-from network_layer import subscribe_to_see, get_movie, get_movie_by_name, set_watched
+from network_layer import subscribe_to_see, get_movie, get_movie_by_name, set_watched, set_rating
 from utils import generate_embed_for_movie, generate_embed_for_reaction
 
 number_emojies = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣']
@@ -53,6 +53,11 @@ class ReactionsModule(commands.Cog):
         if emoji == BACK_EMOJI:
             await message.delete()
             await generate_embed_for_movie(movie, message)
+        else:
+            set_rating(movie.id, user, FILM_RATING_EMOJIS.index(emoji))
+            movie = get_movie(movie.id)
+            await message.edit(embed=await generate_embed_for_reaction(movie, message, True))
+
 
     @classmethod
     async def handle_film_reaction(cls, movie: ParsedMovie, user: discord.User, channel, emoji, message=None):

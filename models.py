@@ -10,11 +10,13 @@ class ParsedMovie:
     id: int
     name: str
     rank: int = None
+    rankings: list = None
     image: str = None
     year: int = None
     already_seen: list = None
     want_to_see: list = None
     guild: str = None
+    actors: str = None
     created_at: datetime = None
     updated_at: datetime = None
 

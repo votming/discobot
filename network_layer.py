@@ -5,6 +5,13 @@ import requests
 from models import ParsedMovie
 
 
+def set_rating(movie_id, user, rating: int):
+    print(f'set_rating, movie_id: {movie_id}, rating: {rating}, user: {user}')
+    data = {'user': {'id': user.id, 'name': user.name, 'avatar': user.avatar.url, 'mention': user.mention}, 'rating': rating}
+    response = requests.post(f'http://127.0.0.1:8000/api/movie/{movie_id}/rate', json=json.dumps(data))
+    print(response)
+
+
 def set_watched(movie_id, user):
     print(f'set_watched, movie_id: {movie_id}, user: {user}')
     user = {'id': user.id, 'name': user.name, 'avatar': user.avatar.url, 'mention': user.mention}
@@ -43,7 +50,3 @@ def update_guild(guild):
     print(f'update_guild, guild: {guild}')
     response = requests.post(f'http://127.0.0.1:8000/api/guild', json=guild)
     print(response.content)
-
-def set_rating(movie_id, user, rating):
-    print(f'set_rating, movie_id: {movie_id}, user: {user}, rating: {rating}')
-    pass
