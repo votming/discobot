@@ -20,8 +20,8 @@ class MovieParser:
         # response = requests.request("GET", cls.url, headers=cls.headers, params=cls.querystring)
         # movie = response.json()['d'][0]
         json = cls.obj['d'][0]
-        movie = ParsedMovie(id=json['id'], name=json['l'], rank=json['rank'], image=json['i']['imageUrl'], year=json['y'])
-        movie.id = json['id']
+        movie = ParsedMovie(uuid=json['id'], name=json['l'], rank=json['rank'], image=json['i']['imageUrl'], year=json['y'])
+        movie.uuid = json['id']
         movie.name = f"{json['l']} ({json['y']})"
         movie.rank = json['rank']
         movie.image = json['i']['imageUrl']

@@ -31,11 +31,11 @@ class MoviesModule(commands.Cog):
                 movie = MovieParser.get_movie(message.content.replace('#кинолента ', ''))
                 movie.guild = message.guild.id
                 # Get additional info about the movie from our backend
-                backend_info = network_layer.get_movie(movie.id)
+                backend_info = network_layer.get_movie(movie.uuid)
 
                 if backend_info is None:
                     network_layer.register_movie(movie)
-                movie = ParsedMovie(**{**movie.toJSON(), **network_layer.get_movie(movie.id).toJSON()})
+                movie = ParsedMovie(**{**movie.toJSON(), **network_layer.get_movie(movie.uuid).toJSON()})
                 await generate_embed_for_movie(movie, message)
         except Exception as e:
             print(str(e))

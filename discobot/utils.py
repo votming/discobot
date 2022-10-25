@@ -69,7 +69,7 @@ async def generate_embed_for_session(session: Session, message, return_message=F
 
 async def generate_embed_for_finishing_movie(session: Session = None, movie: ParsedMovie = None, message=None, return_message=False):
     if not movie:
-        movie = get_movie(session.movie['id'])
+        movie = get_movie(session.movie['uuid'])
     if not session and movie and movie.session:
         session = create_new_session(message.guild)
 

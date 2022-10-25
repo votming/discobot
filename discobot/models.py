@@ -7,7 +7,7 @@ import discord
 
 @dataclass
 class ParsedMovie:
-    id: int
+    uuid: int
     name: str
     rank: int = None
     rankings: list = None

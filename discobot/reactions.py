@@ -120,20 +120,20 @@ class ReactionsModule(commands.Cog):
             await message.delete()
             await generate_embed_for_movie(movie, message)
         else:
-            set_rating(movie.id, user, FILM_RATING_EMOJIS.index(emoji))
-            movie = get_movie(movie.id)
+            set_rating(movie.uuid, user, FILM_RATING_EMOJIS.index(emoji))
+            movie = get_movie(movie.uuid)
             await message.edit(embed=await generate_embed_for_finishing_movie(movie=movie, message=message, return_message=True))
 
 
     @classmethod
     async def handle_film_reaction(cls, movie: ParsedMovie, user: discord.User, channel, emoji, message=None):
         if emoji == FILM_SEEN_EMOJI:
-            set_watched(movie.id, user)
-            movie = get_movie(movie.id)
+            set_watched(movie.uuid, user)
+            movie = get_movie(movie.uuid)
             await message.edit(embed=await generate_embed_for_movie(movie, message, True))
         elif emoji == FILM_PLAN_TO_WATCH_EMOJI:
-            subscribe_to_see(movie.id, user)
-            movie = get_movie(movie.id)
+            subscribe_to_see(movie.uuid, user)
+            movie = get_movie(movie.uuid)
             await message.edit(embed=await generate_embed_for_movie(movie, message, True))
         elif emoji == FILM_RATING_EMOJI:
             await message.delete()
@@ -142,12 +142,12 @@ class ReactionsModule(commands.Cog):
     @classmethod
     async def handle_film_unreaction(cls, movie: ParsedMovie, user: discord.User, channel, emoji, message=None):
         if emoji == FILM_SEEN_EMOJI:
-            set_unwatched(movie.id, user)
-            movie = get_movie(movie.id)
+            set_unwatched(movie.uuid, user)
+            movie = get_movie(movie.uuid)
             await message.edit(embed=await generate_embed_for_movie(movie, message, True))
         elif emoji == FILM_PLAN_TO_WATCH_EMOJI:
-            set_unwatched(movie.id, user)
-            movie = get_movie(movie.id)
+            set_unwatched(movie.uuid, user)
+            movie = get_movie(movie.uuid)
             await message.edit(embed=await generate_embed_for_movie(movie, message, True))
 
     @classmethod
