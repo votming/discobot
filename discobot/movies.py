@@ -37,7 +37,6 @@ class MoviesModule(commands.Cog):
                     network_layer.register_movie(movie)
                 movie = ParsedMovie(**{**movie.toJSON(), **network_layer.get_movie(movie.id).toJSON()})
                 await generate_embed_for_movie(movie, message)
-            await message.channel.send(message.content)
         except Exception as e:
             print(str(e))
 

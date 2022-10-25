@@ -317,6 +317,7 @@ async def speed(ctx: commands.Context, speed):
 async def main():
     await client.load_extension('reactions')
     await client.load_extension('movies')
+    await client.load_extension('sessions')
     await client.start(config.bot_token)
 
 if __name__ == '__main__':
