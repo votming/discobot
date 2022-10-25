@@ -25,7 +25,7 @@ class User(models.Model):
 class Movie(models.Model):
     uuid = models.CharField(max_length=50)
     guild = models.ForeignKey(Guild, on_delete=models.CASCADE)
-    name = models.CharField(max_length=150, unique=True)
+    name = models.CharField(max_length=150)
     actors = models.CharField(max_length=200, default='Нет информации')
     year = models.IntegerField(null=True)
     image = models.CharField(max_length=450, default=None, null=True)
@@ -50,7 +50,7 @@ class Session(models.Model):
 
     class Meta:
         constraints = [
-            UniqueConstraint(fields=['guild', 'seen_at'], condition=Q(seen_at=None),
+            UniqueConstraint(fields=['guild'], condition=Q(seen_at=None),
                              name='unique_guild_seen_at_none')
         ]
 
@@ -58,7 +58,7 @@ class Session(models.Model):
     def available_movies(self):
         if self.audience.all():
             return Movie.objects.filter(guild=self.guild, session__seen_at=None).exclude(already_seen__in=self.audience.all()).all()
-        return Movie.objects.filter(guild=self.guild).all()
+        return Movie.objects.filter(guild=self.guild, session__seen_at=None).all()
 
     @property
     def audience_want_to_see_movies(self):

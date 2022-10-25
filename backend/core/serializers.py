@@ -21,7 +21,7 @@ class MovieSerializer(serializers.ModelSerializer):
     already_seen = UserSerializer(read_only=True, many=True)
     want_to_see = UserSerializer(read_only=True, many=True)
     rankings = RatingSerializer(source='movie_rankings', many=True, read_only=True)
-    session = serializers.PrimaryKeyRelatedField(source='session.id', read_only=True)
+    sessions = serializers.PrimaryKeyRelatedField(source='session_set', many=True, read_only=True)
 
     class Meta:
         model = Movie

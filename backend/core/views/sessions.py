@@ -83,7 +83,7 @@ class SessionsViewSet(ModelViewSet):
         #super().create(request, *args, **kwargs)
         guild_id = request.data.get('guild_id', None)
         if guild_id:
-            session = Session.objects.filter(guild_id=guild_id)
+            session = Session.objects.filter(guild_id=guild_id, seen_at=None)
             if session.exists():
                 session = session.first()
             else:

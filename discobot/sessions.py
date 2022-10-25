@@ -24,8 +24,6 @@ class SessionsModule(commands.Cog):
             if message.content.startswith('#киносеанс'):
                 session = network_layer.create_new_session(message.guild)
                 await generate_embed_for_session(session, message)
-                await message.channel.send('Запуск киносеанса')
-
             if message.reference and message.reference.message_id:
                 session = network_layer.create_new_session(message.guild)
                 session_message = await message.channel.fetch_message(message.reference.message_id)

@@ -1,9 +1,12 @@
+import random
+
 import discord
 
 from config import FILM_EMOJI, FILM_CONTROL_EMOJIS, FILM_RATING_EMOJI, BACK_EMOJI, FILM_RATING_EMOJIS, POOP_EMOJI, \
-    SESSION_EMOJI, SESSION_CONTROL_NO_FILM_EMOJIS, DECLINE_MOVIE_SESSION_EMOJI, SESSION_CONTROL_WITH_FILM_EMOJIS
+    SESSION_EMOJI, SESSION_CONTROL_NO_FILM_EMOJIS, DECLINE_MOVIE_SESSION_EMOJI, SESSION_CONTROL_WITH_FILM_EMOJIS, \
+    ANIMALS
 from models import ParsedMovie, Session
-from network_layer import get_movie, create_new_session
+from network_layer import get_movie, create_new_session, get_session
 
 
 async def generate_embed_for_movie(movie: ParsedMovie, message, return_message=False):
@@ -68,26 +71,42 @@ async def generate_embed_for_session(session: Session, message, return_message=F
 
 
 async def generate_embed_for_finishing_movie(session: Session = None, movie: ParsedMovie = None, message=None, return_message=False):
-    if not movie:
-        movie = get_movie(session.movie['uuid'])
-    if not session and movie and movie.session:
-        session = create_new_session(message.guild)
+    if not movie and session:
+        movie = get_movie(uuid=session.movie['uuid'], guild_id=message.guild.id)
+    if not session and movie and movie.sessions:
+        session = get_session(movie.sessions[-1])
 
     embed = discord.Embed(title=f'{movie.name} {FILM_RATING_EMOJI}')
 
     if session and session.seen_at:
         embed.description = 'Спасибо за просмотр!'
-        audience = ', '.join([user['mention'] for user in session.audience]) if len(session.audience) > 0 else 'Никого не было D:'
+        session.audience.append(session.audience[0])
+        session.audience.append(session.audience[0])
+        audience = get_audience(session.audience, movie.name)
         embed.add_field(name='Зрители', value=audience, inline=False)
-        if movie.seen_at:
-            embed.add_field(name='Показ состоялся', value=movie.seen_at, inline=False)
+        if session.seen_at:
+            embed.add_field(name='Последний просмотр состоялся', value=session.seen_at, inline=False)
 
     total_rating = get_total_rating(movie)
     ratings = '\n'.join([f"""{ranking['user']['mention']}: \t{get_ranking_value(ranking['rating'])}""" for ranking in movie.rankings]) if len(movie.rankings) > 0 else None
     embed.add_field(name='Оценка киноклуба', value=total_rating if total_rating else 'Нет оценок', inline=False)
-    embed.add_field(name='Оценки', value=ratings, inline=False)
+    if ratings:
+        embed.add_field(name='Оценки', value=ratings, inline=False)
     if return_message:
         return embed
     message = await message.channel.send(embed=embed)
+    await message.add_reaction(BACK_EMOJI)
     for emoji in FILM_RATING_EMOJIS:
         await message.add_reaction(emoji)
+
+
+def get_audience(users: list, seed: str):
+    if len(users) <= 0:
+        return 'Никого не было D:'
+
+    output = []
+    for user in users:
+        index = sum(map(ord, user['name'] + seed)) % len(ANIMALS)
+        animal = ANIMALS[index] if 0 <= index <= len(ANIMALS) else random.choice(ANIMALS)
+        output.append(f"{animal}{user['mention']}")
+    return ', '.join(output)

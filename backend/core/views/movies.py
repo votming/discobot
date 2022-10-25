@@ -26,9 +26,9 @@ class MoviesViewSet(ModelViewSet):
         user = User.objects.filter(pk=data['id']).first()
         return user
 
-    def rate_movie(self, request, pk, *args, **kwargs):
+    def rate_movie(self, request, *args, **kwargs):
         data = json.loads(request.data)
-        movie = Movie.objects.get(pk=pk)
+        movie = Movie.objects.get(uuid=data['uuid'], guild_id=data['guild_id'])
         user = self._validate_user(data['user']['id'], data['user'])
         movie.rankings.remove(user)
         movie.rankings.add(user, through_defaults={'rating': data['rating']})
@@ -38,39 +38,39 @@ class MoviesViewSet(ModelViewSet):
         print(f'rating: {data["rating"]}, user: {user}')
         return Response('ok')
 
-    def set_watched(self, request, pk, *args, **kwargs):
+    def set_watched(self, request, *args, **kwargs):
         data = json.loads(request.data)
-        movie = Movie.objects.get(pk=pk)
-        user = self._validate_user(data['id'], data)
+        movie = Movie.objects.get(uuid=data['uuid'])
+        user = self._validate_user(data['user']['id'], data['user'])
 
         movie.already_seen.add(user)
         movie.want_to_see.remove(user)
         print(f'want to see: {list(movie.already_seen.all())}')
         return Response('ok')
 
-    def set_unwatched(self, request, pk, *args, **kwargs):
+    def set_unwatched(self, request, *args, **kwargs):
         data = json.loads(request.data)
-        movie = Movie.objects.get(pk=pk)
-        user = self._validate_user(data['id'], data)
+        movie = Movie.objects.get(uuid=data['uuid'])
+        user = self._validate_user(data['user']['id'], data['user'])
 
         movie.already_seen.remove(user)
         movie.want_to_see.remove(user)
         return Response('ok')
 
-    def subscribe_to_watch(self, request, pk, *args, **kwargs):
+    def subscribe_to_watch(self, request, *args, **kwargs):
         data = json.loads(request.data)
-        movie = Movie.objects.get(pk=pk)
-        user = self._validate_user(data['id'], data)
+        movie = Movie.objects.get(uuid=data['uuid'], guild_id=data['guild_id'])
+        user = self._validate_user(data['user']['id'], data['user'])
 
         movie.want_to_see.add(user)
         movie.already_seen.remove(user)
         print(f'want to see: {list(movie.want_to_see.all())}')
         return Response('ok')
 
-    def get_by_name(self, *args, **kwargs):
-        try:
-            movie = Movie.objects.filter(name=kwargs['name']).first()
+    def get_movie(self, request, *args, **kwargs):
+        data = json.loads(request.data)
+        movie = Movie.objects.filter(**data).first()
+        if movie:
             serializer = MovieSerializer(movie)
             return Response(serializer.data, status=status.HTTP_200_OK)
-        except Movie.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
+        return Response(status=status.HTTP_404_NOT_FOUND)

@@ -8,8 +8,9 @@ from config import FILM_EMOJI, FILM_SEEN_EMOJI, FILM_PLAN_TO_WATCH_EMOJI, FILM_R
     DECLINE_MOVIE_SESSION_EMOJI
 from models import ParsedMovie
 
-from network_layer import subscribe_to_see, get_movie, get_movie_by_name, set_watched, set_rating, create_new_session, \
-    join_session, leave_session, set_unwatched, select_movie, decline_movie, select_random_movie, finish_session
+from network_layer import subscribe_to_see, get_movie, set_watched, set_rating, create_new_session, \
+    join_session, leave_session, set_unwatched, select_movie, decline_movie, select_random_movie, finish_session, \
+    get_session
 from utils import generate_embed_for_movie, generate_embed_for_session, generate_embed_for_finishing_movie
 
 number_emojies = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣']
@@ -44,7 +45,7 @@ class ReactionsModule(commands.Cog):
                 session = create_new_session(message.guild)
                 await self.handle_session_unreaction(session, user, message, emoji.name)
             elif valid_reaction and film_reaction:
-                movie = get_movie_by_name(message.embeds[0].title.replace(f' {FILM_EMOJI}', ''))
+                movie = get_movie(name=message.embeds[0].title.replace(f' {FILM_EMOJI}', ''), guild_id=message.guild.id)
                 await self.handle_film_unreaction(movie, user, channel, emoji.name, message)
         except Exception as e:
             print(str(e))
@@ -72,10 +73,10 @@ class ReactionsModule(commands.Cog):
             if valid_reaction and wiki_question:
                 await self.handle_wiki_reaction(message, emoji)
             elif valid_reaction and film_reaction:
-                movie = get_movie_by_name(message.embeds[0].title.replace(f' {FILM_EMOJI}', ''))#Movie.objects.get(title=message.embeds[0].title.replace(f' {FILM_EMOJI}', ''))
+                movie = get_movie(name=message.embeds[0].title.replace(f' {FILM_EMOJI}', ''), guild_id=message.guild.id)
                 await self.handle_film_reaction(movie, user, channel, emoji.name, message)
             elif valid_reaction and film_rating:
-                movie = get_movie_by_name(message.embeds[0].title.replace(f' {FILM_RATING_EMOJI}', ''))
+                movie = get_movie(name=message.embeds[0].title.replace(f' {FILM_RATING_EMOJI}', ''), guild_id=message.guild.id)
                 await self.set_rating(movie, user, message, emoji.name)
             elif valid_reaction and session_reaction:
                 session = create_new_session(message.guild)
@@ -98,7 +99,7 @@ class ReactionsModule(commands.Cog):
         elif emoji == FINISH_SESSION_EMOJI:
             finish_session(session.id)
             await message.delete()
-            session = create_new_session(message.guild)
+            session = get_session(session.id)
             await generate_embed_for_finishing_movie(session=session, message=message)
             pass
         elif emoji == DECLINE_MOVIE_SESSION_EMOJI:
@@ -120,20 +121,20 @@ class ReactionsModule(commands.Cog):
             await message.delete()
             await generate_embed_for_movie(movie, message)
         else:
-            set_rating(movie.uuid, user, FILM_RATING_EMOJIS.index(emoji))
-            movie = get_movie(movie.uuid)
+            set_rating(movie.uuid, message.guild.id, user, FILM_RATING_EMOJIS.index(emoji))
+            movie = get_movie(uuid=movie.uuid, guild_id=message.guild.id)
             await message.edit(embed=await generate_embed_for_finishing_movie(movie=movie, message=message, return_message=True))
 
 
     @classmethod
     async def handle_film_reaction(cls, movie: ParsedMovie, user: discord.User, channel, emoji, message=None):
         if emoji == FILM_SEEN_EMOJI:
-            set_watched(movie.uuid, user)
-            movie = get_movie(movie.uuid)
+            set_watched(movie.uuid, message.guild.id, user)
+            movie = get_movie(uuid=movie.uuid, guild_id=message.guild.id)
             await message.edit(embed=await generate_embed_for_movie(movie, message, True))
         elif emoji == FILM_PLAN_TO_WATCH_EMOJI:
-            subscribe_to_see(movie.uuid, user)
-            movie = get_movie(movie.uuid)
+            subscribe_to_see(movie.uuid, message.guild.id, user)
+            movie = get_movie(uuid=movie.uuid, guild_id=message.guild.id)
             await message.edit(embed=await generate_embed_for_movie(movie, message, True))
         elif emoji == FILM_RATING_EMOJI:
             await message.delete()
@@ -142,12 +143,12 @@ class ReactionsModule(commands.Cog):
     @classmethod
     async def handle_film_unreaction(cls, movie: ParsedMovie, user: discord.User, channel, emoji, message=None):
         if emoji == FILM_SEEN_EMOJI:
-            set_unwatched(movie.uuid, user)
-            movie = get_movie(movie.uuid)
+            set_unwatched(movie.uuid, message.guild.id, user)
+            movie = get_movie(uuid=movie.uuid, guild_id=message.guild.id)
             await message.edit(embed=await generate_embed_for_movie(movie, message, True))
         elif emoji == FILM_PLAN_TO_WATCH_EMOJI:
-            set_unwatched(movie.uuid, user)
-            movie = get_movie(movie.uuid)
+            set_unwatched(movie.uuid, message.guild.id, user)
+            movie = get_movie(uuid=movie.uuid, guild_id=message.guild.id)
             await message.edit(embed=await generate_embed_for_movie(movie, message, True))
 
     @classmethod

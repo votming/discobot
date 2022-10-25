@@ -29,7 +29,3 @@ class MovieParser:
         movie.actors = json['s']
 
         return movie
-
-
-movie = MovieParser.get_movie('Мстители')
-print(movie.name)

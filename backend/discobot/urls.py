@@ -20,10 +20,9 @@ urlpatterns = [
     path('api/session/<pk>/finish', SessionsViewSet.as_view({'get': 'finish_session'})),
 
     path('api/movie', MoviesViewSet.as_view({'post': 'create'})),
-    path('api/movie/by_name/<name>', MoviesViewSet.as_view({'get': 'get_by_name'})),
-    path('api/movie/<pk>', MoviesViewSet.as_view({'get': 'retrieve'})),
-    path('api/movie/<pk>/subscribe_to_watch', MoviesViewSet.as_view({'post': 'subscribe_to_watch'})),
-    path('api/movie/<pk>/watched', MoviesViewSet.as_view({'post': 'set_watched'})),
-    path('api/movie/<pk>/unwatched', MoviesViewSet.as_view({'post': 'set_unwatched'})),
-    path('api/movie/<pk>/rate', MoviesViewSet.as_view({'post': 'rate_movie'})),
+    path('api/movie/get', MoviesViewSet.as_view({'post': 'get_movie'})),
+    path('api/movie/subscribe_to_watch', MoviesViewSet.as_view({'post': 'subscribe_to_watch'})),
+    path('api/movie/watched', MoviesViewSet.as_view({'post': 'set_watched'})),
+    path('api/movie/unwatched', MoviesViewSet.as_view({'post': 'set_unwatched'})),
+    path('api/movie/rate', MoviesViewSet.as_view({'post': 'rate_movie'})),
 ]

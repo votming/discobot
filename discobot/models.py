@@ -15,11 +15,12 @@ class ParsedMovie:
     year: int = None
     already_seen: list = None
     want_to_see: list = None
-    session: int = None
+    sessions: list = None
     guild: str = None
     actors: str = None
     created_at: datetime = None
     updated_at: datetime = None
+    id: int = None
 
     def toJSON(self):
         return self.__dict__

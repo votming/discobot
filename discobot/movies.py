@@ -28,14 +28,14 @@ class MoviesModule(commands.Cog):
 
             if message.content.startswith('#кинолента'):
                 # Request movie from IMDB
-                movie = MovieParser.get_movie(message.content.replace('#кинолента ', ''))
+                movie = MovieParser.get_movie(name=message.content.replace('#кинолента ', ''))
                 movie.guild = message.guild.id
                 # Get additional info about the movie from our backend
-                backend_info = network_layer.get_movie(movie.uuid)
+                backend_info = network_layer.get_movie(uuid=movie.uuid, guild_id=message.guild.id)
 
                 if backend_info is None:
                     network_layer.register_movie(movie)
-                movie = ParsedMovie(**{**movie.toJSON(), **network_layer.get_movie(movie.uuid).toJSON()})
+                movie = ParsedMovie(**{**movie.toJSON(), **network_layer.get_movie(uuid=movie.uuid, guild_id=message.guild.id).toJSON()})
                 await generate_embed_for_movie(movie, message)
         except Exception as e:
             print(str(e))
