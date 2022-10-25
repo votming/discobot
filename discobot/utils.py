@@ -9,7 +9,22 @@ from models import ParsedMovie, Session
 from network_layer import get_movie, create_new_session, get_session
 
 
-async def generate_embed_for_movie(movie: ParsedMovie, message, return_message=False):
+async def display_message(embed: discord.Embed, message: discord.Message, new_emojis: list, channel):
+    if message:
+        print('there is message, changing')
+        old_emojis = [e.emoji for e in message.reactions]
+        await message.edit(embed=embed)
+        if set(old_emojis) != set(new_emojis):
+            await message.clear_reactions()
+            for emoji in new_emojis:
+                await message.add_reaction(emoji)
+    else:
+        print('no message, creating new')
+        message = await channel.send(embed=embed)
+        for emoji in new_emojis:
+            await message.add_reaction(emoji)
+
+async def generate_embed_for_movie(movie: ParsedMovie, message, channel=None):
     title = f'{movie.name} {FILM_EMOJI}'
     want_to_see = ', '.join([user['mention'] for user in movie.want_to_see]) if len(movie.want_to_see) > 0 else 'никто'
     already_seen = ', '.join([user['mention'] for user in movie.already_seen]) if len(movie.already_seen) > 0 else 'никто'
@@ -22,6 +37,9 @@ async def generate_embed_for_movie(movie: ParsedMovie, message, return_message=F
     embed.add_field(name='Кто хочет посмотреть', value=want_to_see, inline=False)
     embed.add_field(name='Кто уже видел', value=already_seen, inline=False)
     embed.set_thumbnail(url=movie.image)
+    await display_message(embed, message, FILM_CONTROL_EMOJIS, channel)
+    return
+
     if return_message:
         return embed
     message = await message.channel.send(embed=embed)
@@ -41,7 +59,7 @@ def get_ranking_value(rating):
     return result if result > 0 else POOP_EMOJI
 
 
-async def generate_embed_for_session(session: Session, message, return_message=False):
+async def generate_embed_for_session(session: Session, message=None, channel=None):
     embed = discord.Embed(title=f'Киносеанс {SESSION_EMOJI}')
     audience = ', '.join([user['mention'] for user in session.audience]) if len(session.audience) > 0 else 'Ещё никто не присоеденился'
     embed.add_field(name='Зрители', value=audience, inline=False)
@@ -59,6 +77,9 @@ async def generate_embed_for_session(session: Session, message, return_message=F
                     crave_movies.append(f'И ещё {len(session.available_movies)}...')
                     break
             embed.add_field(name='Все хотят посмотреть', value='\n'.join(crave_movies), inline=False)
+    emojis_to_display = SESSION_CONTROL_WITH_FILM_EMOJIS if session.movie else SESSION_CONTROL_NO_FILM_EMOJIS
+    await display_message(embed, message, emojis_to_display, channel)
+    return
     if return_message:
         return embed
     message = await message.channel.send(embed=embed)
@@ -70,9 +91,9 @@ async def generate_embed_for_session(session: Session, message, return_message=F
             await message.add_reaction(emoji)
 
 
-async def generate_embed_for_finishing_movie(session: Session = None, movie: ParsedMovie = None, message=None, return_message=False):
+async def generate_embed_for_finishing_movie(session: Session = None, movie: ParsedMovie = None, message=None, channel=None, guild=None):
     if not movie and session:
-        movie = get_movie(uuid=session.movie['uuid'], guild_id=message.guild.id)
+        movie = get_movie(uuid=session.movie['uuid'], guild_id=guild.id)
     if not session and movie and movie.sessions:
         session = get_session(movie.sessions[-1])
 
@@ -80,8 +101,6 @@ async def generate_embed_for_finishing_movie(session: Session = None, movie: Par
 
     if session and session.seen_at:
         embed.description = 'Спасибо за просмотр!'
-        session.audience.append(session.audience[0])
-        session.audience.append(session.audience[0])
         audience = get_audience(session.audience, movie.name)
         embed.add_field(name='Зрители', value=audience, inline=False)
         if session.seen_at:
@@ -92,6 +111,9 @@ async def generate_embed_for_finishing_movie(session: Session = None, movie: Par
     embed.add_field(name='Оценка киноклуба', value=total_rating if total_rating else 'Нет оценок', inline=False)
     if ratings:
         embed.add_field(name='Оценки', value=ratings, inline=False)
+
+    await display_message(embed, message, FILM_RATING_EMOJIS, channel)
+    return
     if return_message:
         return embed
     message = await message.channel.send(embed=embed)

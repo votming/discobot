@@ -23,7 +23,7 @@ class SessionsModule(commands.Cog):
 
             if message.content.startswith('#киносеанс'):
                 session = network_layer.create_new_session(message.guild)
-                await generate_embed_for_session(session, message)
+                await generate_embed_for_session(session, channel=message.channel)
             if message.reference and message.reference.message_id:
                 session = network_layer.create_new_session(message.guild)
                 session_message = await message.channel.fetch_message(message.reference.message_id)
@@ -35,7 +35,7 @@ class SessionsModule(commands.Cog):
                     if selected_the_movie:
                         session = network_layer.create_new_session(message.guild)
                         await session_message.delete()
-                        await generate_embed_for_session(session, message)
+                        await generate_embed_for_session(session, channel=message.channel)
                     else:
                         await message.channel.send(f'Фильм не найден (`{message.content}`)')
 
