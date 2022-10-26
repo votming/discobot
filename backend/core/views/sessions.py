@@ -13,8 +13,11 @@ from core.serializers import MovieSerializer, UserSerializer, SessionSerializer
 class SessionsViewSet(ModelViewSet):
     model = Session
     serializer_class = SessionSerializer
+    guild_id = None
 
     def get_queryset(self) -> QuerySet:
+        if self.guild_id:
+            return Session.objects.filter(guild_id=self.guild_id).exclude(seen_at=None).order_by('-seen_at')
         return Session.objects.all()
 
     def _validate_user(self, id, data):
@@ -27,6 +30,10 @@ class SessionsViewSet(ModelViewSet):
             qs.update(**data)
         user = User.objects.filter(pk=data['id']).first()
         return user
+
+    def list(self, request, *args, **kwargs):
+        self.guild_id = kwargs.get('guild_id', None)
+        return super().list(self, request, *args, **kwargs)
 
     def join_session(self, request, *args, **kwargs):
         session = self.get_object()
@@ -48,9 +55,20 @@ class SessionsViewSet(ModelViewSet):
 
     def finish_session(self, request, *args, **kwargs):
         session = self.get_object()
-        session.seen_at = timezone.now()
-        session.save()
-        return Response()
+        if session.movie:
+            session.seen_at = timezone.now()
+            session.save()
+            movie = session.movie
+            for user in session.audience.all():
+                movie.want_to_see.remove(user)
+                try:
+                    movie.already_seen.add(user)
+                except Exception as e:
+                    print(str(e))
+                    pass
+            return Response()
+        else:
+            return Response(status=400)
 
     def select_random(self, request, *args, **kwargs):
         session = self.get_object()

@@ -38,6 +38,15 @@ class Movie(models.Model):
     class Meta:
         unique_together = ('uuid', 'guild')
 
+    @property
+    def average_rating(self):
+        rows = Ranking.objects.filter(movie=self)
+        if len(rows) > 0:
+            return sum([row.rating for row in rows])/len(rows)
+        else:
+            return None
+
+
 
 class Session(models.Model):
     id = models.AutoField(primary_key=True)
@@ -57,13 +66,16 @@ class Session(models.Model):
     @property
     def available_movies(self):
         if self.audience.all():
-            return Movie.objects.filter(guild=self.guild, session__seen_at=None).exclude(already_seen__in=self.audience.all()).all()
+            return Movie.objects.filter(guild=self.guild, session__seen_at=None).exclude(already_seen__in=self.audience.all()).distinct().all()
         return Movie.objects.filter(guild=self.guild, session__seen_at=None).all()
 
     @property
     def audience_want_to_see_movies(self):
         if self.audience.all():
-            return Movie.objects.filter(guild=self.guild, session__seen_at=None, want_to_see__in=self.audience.all()).all()
+            movies = self.audience.first().want_to_see.all()
+            for user in self.audience.all():
+                movies = movies.intersection(user.want_to_see.all())
+            return Movie.objects.filter(id__in=movies.values_list('id',flat=True)).exclude(already_seen__in=self.audience.all())
         return []
 
 

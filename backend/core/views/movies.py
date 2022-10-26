@@ -40,7 +40,7 @@ class MoviesViewSet(ModelViewSet):
 
     def set_watched(self, request, *args, **kwargs):
         data = json.loads(request.data)
-        movie = Movie.objects.get(uuid=data['uuid'])
+        movie = Movie.objects.get(uuid=data['uuid'], guild_id=data['guild_id'])
         user = self._validate_user(data['user']['id'], data['user'])
 
         movie.already_seen.add(user)
@@ -50,7 +50,7 @@ class MoviesViewSet(ModelViewSet):
 
     def set_unwatched(self, request, *args, **kwargs):
         data = json.loads(request.data)
-        movie = Movie.objects.get(uuid=data['uuid'])
+        movie = Movie.objects.get(uuid=data['uuid'], guild_id=data['guild_id'])
         user = self._validate_user(data['user']['id'], data['user'])
 
         movie.already_seen.remove(user)

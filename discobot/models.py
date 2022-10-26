@@ -13,6 +13,7 @@ class ParsedMovie:
     rankings: list = None
     image: str = None
     year: int = None
+    average_rating: int = None
     already_seen: list = None
     want_to_see: list = None
     sessions: list = None
@@ -40,3 +41,10 @@ class Session:
 
     def toJSON(self):
         return self.__dict__
+
+@dataclass
+class History:
+    sessions: list
+    count: int
+    page: int
+

@@ -5,7 +5,7 @@ import network_layer
 from config import FILM_EMOJI, FILM_CONTROL_EMOJIS, SESSION_EMOJI
 from imdb import MovieParser
 from models import ParsedMovie
-from utils import generate_embed_for_movie, generate_embed_for_session
+from utils import generate_embed_for_movie, generate_embed_for_session, generate_embed_for_history
 
 
 class SessionsModule(commands.Cog):
@@ -24,6 +24,9 @@ class SessionsModule(commands.Cog):
             if message.content.startswith('#киносеанс'):
                 session = network_layer.create_new_session(message.guild)
                 await generate_embed_for_session(session, channel=message.channel)
+            if message.content.startswith('#история'):
+                history = network_layer.get_history(message.guild.id)
+                await generate_embed_for_history(history, channel=message.channel)
             if message.reference and message.reference.message_id:
                 session = network_layer.create_new_session(message.guild)
                 session_message = await message.channel.fetch_message(message.reference.message_id)

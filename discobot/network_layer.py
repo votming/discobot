@@ -2,7 +2,8 @@ import json
 
 import requests
 
-from models import ParsedMovie, Session
+from config import SESSIONS_PER_PAGE
+from models import ParsedMovie, Session, History
 
 
 def set_rating(movie_uuid, guild_id, user, rating: int):
@@ -106,3 +107,12 @@ def get_session(session_id):
     print(f'get_session, session_id: {session_id}')
     response = requests.get(f'http://127.0.0.1:8000/api/session/{session_id}')
     return Session(**response.json())
+
+def get_history(guild_id, offset=0) -> History:
+    print(f'get_all_history, guild_id: {guild_id}')
+    response = requests.get(f'http://127.0.0.1:8000/api/session/by_guild/{guild_id}?limit={SESSIONS_PER_PAGE}&offset={SESSIONS_PER_PAGE*offset}')
+    json = response.json()
+    sessions = list()
+    for data in json['results']:
+        sessions.append(Session(**data))
+    return History(sessions=sessions, page=offset+1, count=json['count'])

@@ -17,9 +17,10 @@ class MovieParser:
 
     @classmethod
     def get_movie(cls, name) -> ParsedMovie:
-        # response = requests.request("GET", cls.url, headers=cls.headers, params=cls.querystring)
-        # movie = response.json()['d'][0]
-        json = cls.obj['d'][0]
+        querystring = {"q": name}
+        response = requests.request("GET", cls.url, headers=cls.headers, params=querystring)
+        json = response.json()['d'][0]
+        #json = cls.obj['d'][7]
         movie = ParsedMovie(uuid=json['id'], name=json['l'], rank=json['rank'], image=json['i']['imageUrl'], year=json['y'])
         movie.uuid = json['id']
         movie.name = f"{json['l']} ({json['y']})"

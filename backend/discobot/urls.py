@@ -11,6 +11,7 @@ urlpatterns = [
     path('api/guild', GuildsViewSet.as_view({'post': 'create'})),
 
     path('api/session', SessionsViewSet.as_view({'post': 'create'})),
+    path('api/session/by_guild/<guild_id>', SessionsViewSet.as_view({'get': 'list'})),
     path('api/session/<pk>', SessionsViewSet.as_view({'get': 'retrieve'})),
     path('api/session/<pk>/join', SessionsViewSet.as_view({'post': 'join_session'})),
     path('api/session/<pk>/leave', SessionsViewSet.as_view({'post': 'leave_session'})),
