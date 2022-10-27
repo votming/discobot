@@ -1,6 +1,7 @@
 import json
 
 import requests
+from urllib3.exceptions import NewConnectionError
 
 from config import SESSIONS_PER_PAGE, BACKEND_PORT
 from models import ParsedMovie, Session, History
@@ -29,12 +30,14 @@ def set_watched(movie_id, guild_id, user):
     response = requests.post(f'http://127.0.0.1:{BACKEND_PORT}/api/movie/watched', json=json.dumps(user))
     print(response)
 
+
 def subscribe_to_see(movie_id, guild_id, user):
     print(f'subscribe_to_see, user: {user}')
     user = {'user':{'id': user.id, 'name': user.name, 'avatar': user.avatar.url, 'mention': user.mention},
             'uuid': movie_id, 'guild_id': guild_id}
     response = requests.post(f'http://127.0.0.1:{BACKEND_PORT}/api/movie/subscribe_to_watch', json=json.dumps(user))
     print(response.content)
+
 
 def get_movie(**kwargs):
     print(f'get_movie, id: {kwargs}')
@@ -44,16 +47,19 @@ def get_movie(**kwargs):
     print(response)
     return ParsedMovie(**response.json())
 
+
 def register_movie(movie: ParsedMovie):
     print(f'register_movie, movie: {movie}')
     response = requests.post(f'http://127.0.0.1:{BACKEND_PORT}/api/movie', json=movie.toJSON())
     print(response.content)
     return response.json()
 
+
 def update_guild(guild):
     print(f'update_guild, guild: {guild}')
     response = requests.post(f'http://127.0.0.1:{BACKEND_PORT}/api/guild', json=guild)
     print(response.content)
+
 
 def create_new_session(guild):
     print(f'create_new_session, guild: {guild}')
@@ -108,11 +114,20 @@ def get_session(session_id):
     response = requests.get(f'http://127.0.0.1:{BACKEND_PORT}/api/session/{session_id}')
     return Session(**response.json())
 
-def get_history(guild_id, offset=0) -> History:
+
+def get_history(guild_id, page=0) -> History:
     print(f'get_all_history, guild_id: {guild_id}')
-    response = requests.get(f'http://127.0.0.1:{BACKEND_PORT}/api/session/by_guild/{guild_id}?limit={SESSIONS_PER_PAGE}&offset={SESSIONS_PER_PAGE*offset}')
+    response = requests.get(f'http://127.0.0.1:{BACKEND_PORT}/api/session/by_guild/{guild_id}?limit={SESSIONS_PER_PAGE}&offset={SESSIONS_PER_PAGE*page}')
     json = response.json()
     sessions = list()
     for data in json['results']:
         sessions.append(Session(**data))
-    return History(sessions=sessions, page=offset+1, count=json['count'])
+    return History(sessions=sessions, page=page+1, count=json['count'])
+
+def handshake():
+    print(f'handshake')
+    try:
+        response = requests.get(f'http://127.0.0.1:{BACKEND_PORT}/api/handshake')
+        return response and response.status_code == 200
+    except Exception:
+        return False

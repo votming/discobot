@@ -9,6 +9,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
 
     path('api/guild', GuildsViewSet.as_view({'post': 'create'})),
+    path('api/handshake', GuildsViewSet.as_view({'get': 'handshake'})),
 
     path('api/session', SessionsViewSet.as_view({'post': 'create'})),
     path('api/session/by_guild/<guild_id>', SessionsViewSet.as_view({'get': 'list'})),

@@ -1,6 +1,10 @@
+# Project
 config.py
 venv
 backend/db.sqlite3
+discobot/files/audio/*
+discobot/files/images/*
+discobot/files/video/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
