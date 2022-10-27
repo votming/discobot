@@ -7,10 +7,10 @@ from gtts import gTTS
 from pydub import AudioSegment
 from pytube import YouTube
 
-
 voice_channels = {}
 _lang = 'ru'
 _speed = 1.3
+
 
 class VoiceModule(commands.Cog):
 

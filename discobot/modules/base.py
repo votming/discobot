@@ -68,10 +68,7 @@ class BaseModule(commands.Cog):
             message = await message.channel.send(embed=discord.Embed(title=WIKI_EMBED_TITLE, description=response))
             for emoji in config.NUMBERS_ONE_TO_FIVE:
                 await message.add_reaction(emoji)
-                '''results = list(search(query, num_results=10))
-                for result in results:
-                    if 'wikipedia' in result:
-        '''
+
         except Exception as ex:
             await message.channel.send(f'{ex} (`{query}`)')
 
