@@ -3,7 +3,6 @@ import re
 
 import discord
 from discord.ext import commands
-from discord.ext.commands import cog
 import wikipedia
 
 from config import FILM_EMOJI, FILM_SEEN_EMOJI, FILM_PLAN_TO_WATCH_EMOJI, FILM_RATING_EMOJI, FILM_RATING_EMOJIS, \
@@ -39,9 +38,7 @@ class ReactionsModule(commands.Cog):
 
         valid_reaction = message.author == self.bot.user and user != self.bot.user
         has_embeds = len(message.embeds) > 0
-        #wiki_question = message.embeds[0].title == WIKI_EMBED_TITLE if has_embeds else False
         film_reaction = message.embeds[0].title.endswith(FILM_EMOJI) if has_embeds else False
-        #film_rating = message.embeds[0].title.endswith(FILM_RATING_EMOJI) if has_embeds else False
         session_reaction = message.embeds[0].title.endswith(SESSION_EMOJI) if has_embeds else False
 
         try:

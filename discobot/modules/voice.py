@@ -7,11 +7,6 @@ from gtts import gTTS
 from pydub import AudioSegment
 from pytube import YouTube
 
-import network_layer
-from config import FILM_EMOJI, FILM_CONTROL_EMOJIS
-from imdb import MovieParser
-from models import ParsedMovie
-from utils import generate_embed_for_movie
 
 voice_channels = {}
 _lang = 'ru'
@@ -22,32 +17,6 @@ class VoiceModule(commands.Cog):
     def __init__(self, bot):
         print('VoiceModule enabled')
         self.bot = bot
-
-    @commands.Cog.listener()
-    async def on_ready(self):
-        for guild in self.bot.guilds:
-            network_layer.update_guild({'id': guild.id, 'name': guild.name})
-
-    @commands.Cog.listener()
-    async def on_message(self, message: discord.Message):
-        print('new on_message')
-        try:
-            if message.author == self.bot.user:
-                return
-
-            if message.content.startswith('#кинолента'):
-                # Request movie from IMDB
-                movie = MovieParser.get_movie(name=message.content.replace('#кинолента ', ''))
-                movie.guild = message.guild.id
-                # Get additional info about the movie from our backend
-                backend_info = network_layer.get_movie(uuid=movie.uuid, guild_id=message.guild.id)
-
-                if backend_info is None:
-                    network_layer.register_movie(movie)
-                movie = ParsedMovie(**{**movie.toJSON(), **network_layer.get_movie(uuid=movie.uuid, guild_id=message.guild.id).toJSON()})
-                await generate_embed_for_movie(movie, channel=message.channel)
-        except Exception as e:
-            print(str(e))
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
@@ -225,27 +194,3 @@ def say_message(text, guild_id):
 
 async def setup(bot):
     await bot.add_cog(VoiceModule(bot))
-
-
-# service = build(
-#                 "customsearch", "v1", developerKey="AIzaSyC7g0oCCmwPgGqPHgjdRtie637kSC6pUDQ"
-#             )
-#
-#             res = service.cse().list(
-#                 q='butterfly',
-#                 cx="009557628044748784875:5lejfe73wrw",
-#                 searchType='image',
-#                 num=10,
-#                 imgType='clipart',
-#                 safe='off'
-#             ).execute()
-#
-#             if not 'items' in res:
-#                 print('No result !!\nres is: {}'.format(res))
-#             else:
-#                 for item in res['items']:
-#                     async with aiohttp.ClientSession() as session:  # creates session
-#                         async with session.get(item['link'], ssl=False) as resp:  # gets image from url
-#                             img = await resp.read()  # reads image from response
-#                             with io.BytesIO(img) as file:  # converts to file-like object
-#                                 await message.channel.send(file=discord.File(file, f"{hash(item['link'])}.png"))

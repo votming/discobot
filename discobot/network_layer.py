@@ -1,7 +1,6 @@
 import json
 
 import requests
-from urllib3.exceptions import NewConnectionError
 
 from config import SESSIONS_PER_PAGE, BACKEND_PORT
 from models import ParsedMovie, Session, History

@@ -1,8 +1,5 @@
-import json
 from datetime import datetime
 from dataclasses import dataclass
-
-import discord
 
 
 @dataclass
@@ -41,6 +38,7 @@ class Session:
 
     def toJSON(self):
         return self.__dict__
+
 
 @dataclass
 class History:

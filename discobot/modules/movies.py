@@ -2,8 +2,7 @@ import discord
 from discord.ext import commands
 
 import network_layer
-from config import FILM_EMOJI, FILM_CONTROL_EMOJIS
-from imdb import MovieParser
+from modules.imdb import MovieParser
 from models import ParsedMovie
 from utils import generate_embed_for_movie
 
