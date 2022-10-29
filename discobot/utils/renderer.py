@@ -79,8 +79,8 @@ async def generate_embed_for_session(guild_id: int, message=None, channel=None):
             i = 0
             for movie in session.club_has_seen:
                 i += 1
-                rating = f"`({get_rating_value(movie['average_rating'])})`" if movie['average_rating'] else ''
-                crave_movies.append(f"{rating} {movie['name']}")
+                rating = f"`{get_rating_value(movie['average_rating'])}`" if movie['average_rating'] else ''
+                crave_movies.append(f"{movie['name']} {rating}")
                 if i >= 10:
                     crave_movies.append(f'(И ещё {len(session.club_has_seen) - 10} других)')
                     break
