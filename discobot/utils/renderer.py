@@ -79,7 +79,8 @@ async def generate_embed_for_session(guild_id: int, message=None, channel=None):
             i = 0
             for movie in session.club_has_seen:
                 i += 1
-                crave_movies.append(f"{movie['name']} `({movie['average_rating']})`")
+                rating = f"`({get_rating_value(movie['average_rating'])})`" if movie['average_rating'] else ''
+                crave_movies.append(f"{rating} {movie['name']}")
                 if i >= 10:
                     crave_movies.append(f'(И ещё {len(session.club_has_seen) - 10} других)')
                     break
@@ -145,7 +146,7 @@ async def generate_embed_for_history(guild_id: int, page=0, message: discord.Mes
     if history.sessions:
         viewed_movies = []
         for session in history.sessions:
-            rating = f"`({session.movie['average_rating'] if session.movie['average_rating'] and session.movie['average_rating']>0 else POOP_EMOJI})` " if session.movie else ' '
+            rating = get_rating_value(session.movie['average_rating']) if session.movie else ' '
             movie_title = session.movie['name'] if session.movie else 'Фильм не указан'
             movie_title = f'{rating}{movie_title}'
             viewed_movies.append(f"`{session.seen_at}` {movie_title}")
@@ -153,3 +154,7 @@ async def generate_embed_for_history(guild_id: int, page=0, message: discord.Mes
         additional_info = f'({history.page}/{max_pages})' if max_pages > 1 else ''
         embed.add_field(name=f'История просмотров {additional_info}', value='\n'.join(viewed_movies), inline=False)
     await display_message(embed, message, HISTORY_CONTROL_EMOJIS, channel)
+
+
+def get_rating_value(value):
+    return value if value and value > 0 else POOP_EMOJI

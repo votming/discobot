@@ -73,7 +73,7 @@ class Session(models.Model):
         for movie in movies:
             if set(movie.already_seen.all().values_list('id', flat=True)).isdisjoint(audience_ids):
                 output.append(movie)
-        self.club_has_seen = output#movies.distinct().all()
+        self.club_has_seen = sorted(output, reverse=True,key=lambda i: (i.average_rating if i.average_rating else -1))#movies.distinct().all()
         return
 
 #movies = Movie.objects.filter(guild=253251169248477184, session__seen_at__gt='2022-01-01')
