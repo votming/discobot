@@ -67,6 +67,7 @@ class Session(models.Model):
     def get_top_movies(self, members_ids: list):
         movies = Movie.objects.filter(guild=self.guild, session__seen_at__gt='2022-01-01')
         suggesters = set(members_ids).difference(set(self.audience.all().values_list('id', flat=True)))
+        print(suggesters)
         movies = movies.filter(already_seen__in=suggesters)
         self.club_has_seen = movies.distinct().all()
 
