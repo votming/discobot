@@ -3,7 +3,7 @@ from discord.ext import commands
 
 import network_layer
 from config import SESSION_EMOJI
-from utils import generate_embed_for_session, generate_embed_for_history
+from utils.renderer import generate_embed_for_session, generate_embed_for_history
 
 
 class SessionsModule(commands.Cog):

@@ -13,7 +13,7 @@ from models import ParsedMovie
 from network_layer import subscribe_to_see, get_movie, set_watched, set_rating, get_guild_session, \
     join_session, leave_session, set_unwatched, select_movie, decline_movie, select_random_movie, finish_session, \
     get_session, get_history
-from utils import generate_embed_for_movie, generate_embed_for_session, generate_embed_for_finishing_movie, \
+from utils.renderer import generate_embed_for_movie, generate_embed_for_session, generate_embed_for_finishing_movie, \
     generate_embed_for_history
 
 number_emojies = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣']

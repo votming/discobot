@@ -4,7 +4,7 @@ from discord.ext import commands
 import network_layer
 from modules.imdb import MovieParser
 from models import ParsedMovie
-from utils import generate_embed_for_movie
+from utils.renderer import generate_embed_for_movie
 
 
 class MoviesModule(commands.Cog):
