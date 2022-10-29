@@ -40,8 +40,9 @@ class SessionSerializer(serializers.ModelSerializer):
     audience = UserSerializer(many=True)
     available_movies = MovieSerializer(many=True)
     audience_want_to_see_movies = MovieSerializer(many=True)
+    club_has_seen = MovieSerializer(many=True)
     seen_at = serializers.DateTimeField(format="%Y-%m-%d")
 
     class Meta:
         model = Session
-        fields = ['id', 'guild', 'movie', 'available_movies', 'audience_want_to_see_movies', 'seen_at', 'audience', 'created_at', 'updated_at']
+        fields = ['id', 'guild', 'movie', 'club_has_seen', 'available_movies', 'audience_want_to_see_movies', 'seen_at', 'audience', 'created_at', 'updated_at']

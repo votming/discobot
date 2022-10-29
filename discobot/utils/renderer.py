@@ -64,14 +64,26 @@ def get_ranking_value(rating):
 
 
 async def generate_embed_for_session(guild_id: int, message=None, channel=None):
-    session = get_guild_session(guild_id)
+    members = channel.members if channel else message.channel.members
+    members_ids = [member.id for member in members if not member.bot]
+    session: Session = get_guild_session(guild_id, members_ids=members_ids)
     embed = discord.Embed(title=f'Киносеанс {SESSION_EMOJI}')
     audience = ', '.join([user['mention'] for user in session.audience]) if len(session.audience) > 0 else 'Ещё никто не присоеденился'
     embed.add_field(name='Зрители', value=audience, inline=False)
     if session.movie:
         embed.add_field(name='Выбранный фильм', value=session.movie['name'], inline=False)
     else:
-        embed.add_field(name='Доступно фильмов на рандоме', value=len(session.available_movies), inline=False)
+        #embed.add_field(name='Доступно фильмов на рандоме', value=len(session.available_movies), inline=False)
+        if len(session.club_has_seen) > 0:
+            crave_movies = []
+            i = 0
+            for movie in session.club_has_seen:
+                i += 1
+                crave_movies.append(f"{movie['name']} `({movie['average_rating']})`")
+                if i >= 10:
+                    crave_movies.append(f'(И ещё {len(session.club_has_seen) - 10} других)')
+                    break
+            embed.add_field(name='Годнота от киноклуба', value='\n'.join(crave_movies), inline=False)
         if len(session.audience_want_to_see_movies) > 0:
             crave_movies = []
             i = 0
@@ -79,7 +91,7 @@ async def generate_embed_for_session(guild_id: int, message=None, channel=None):
                 i += 1
                 crave_movies.append(movie['name'])
                 if i >= 10:
-                    crave_movies.append(f'И ещё {len(session.available_movies)}...')
+                    crave_movies.append(f'(И ещё {len(session.available_movies) - 10} других)')
                     break
             embed.add_field(name='Все хотят посмотреть', value='\n'.join(crave_movies), inline=False)
     emojis_to_display = SESSION_CONTROL_WITH_FILM_EMOJIS if session.movie else SESSION_CONTROL_NO_FILM_EMOJIS

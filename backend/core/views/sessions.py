@@ -100,12 +100,15 @@ class SessionsViewSet(ModelViewSet):
     def create(self, request, *args, **kwargs):
         #super().create(request, *args, **kwargs)
         guild_id = request.data.get('guild_id', None)
+        members_ids = request.data.get('members_ids', None)
         if guild_id:
             session = Session.objects.filter(guild_id=guild_id, seen_at=None)
             if session.exists():
                 session = session.first()
             else:
                 session = Session.objects.create(guild_id=guild_id)
+            if members_ids:
+                session.get_top_movies(members_ids)
             serializer = SessionSerializer(session)
             return Response(serializer.data, status=status.HTTP_200_OK)
         else:

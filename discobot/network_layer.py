@@ -55,8 +55,8 @@ def update_guild(guild):
 
 
 @log_api_call
-def get_guild_session(guild_id):
-    response = requests.post(f'http://127.0.0.1:{BACKEND_PORT}/api/session', json={'guild_id': guild_id})
+def get_guild_session(guild_id, members_ids=None):
+    response = requests.post(f'http://127.0.0.1:{BACKEND_PORT}/api/session', json={'guild_id': guild_id, 'members_ids': members_ids})
     return Session(**response.json())
 
 

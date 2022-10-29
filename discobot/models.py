@@ -30,6 +30,7 @@ class Session:
     guild: str
     audience: list
     available_movies: list = None
+    club_has_seen: list = None
     audience_want_to_see_movies: list = None
     seen_at: datetime = None
     movie: dict = None
