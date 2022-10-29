@@ -72,7 +72,7 @@ class Session(models.Model):
         movies = movies.filter(already_seen__in=suggesters).distinct().all()
         output = []
         for movie in movies:
-            if set(movie.already_seen.all().values_list('id', flat=True)).isdisjoint(suggesters):
+            if not set(movie.already_seen.all().values_list('id', flat=True)).isdisjoint(suggesters):
                 output.append(movie)
         self.club_has_seen = output#movies.distinct().all()
 
