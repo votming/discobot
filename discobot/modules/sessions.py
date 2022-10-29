@@ -19,14 +19,23 @@ class SessionsModule(commands.Cog):
             if message.author == self.bot.user:
                 return
 
-            if message.content.startswith('#киносеанс'):
-                session = network_layer.create_new_session(message.guild)
-                await generate_embed_for_session(session, channel=message.channel)
-            if message.content.startswith('#история'):
-                history = network_layer.get_history(message.guild.id)
-                await generate_embed_for_history(history, channel=message.channel)
-            if message.reference and message.reference.message_id:
-                session = network_layer.create_new_session(message.guild)
+            history_command = message.content.startswith('#история')
+            session_command = message.content.startswith('#киносеанс')
+            session_command_with_movie = message.content.startswith('#киносеанс ') and len(message.content) > 11
+            reply = message.reference and message.reference.message_id
+
+            if session_command:
+                session = network_layer.get_guild_session(message.guild.id)
+                if session_command_with_movie:
+                    selected_the_movie = network_layer.select_movie(session.id, message.content.replace('#киносеанс ', ''))
+                    if not selected_the_movie:
+                        await message.channel.send(f'Фильм не найден (`{message.content}`)')
+                        return
+                await generate_embed_for_session(message.guild.id, channel=message.channel)
+            if history_command:
+                await generate_embed_for_history(message.guild.id, channel=message.channel)
+            if reply:
+                session = network_layer.get_guild_session(message.guild.id)
                 session_message = await message.channel.fetch_message(message.reference.message_id)
                 is_bot = session_message.author == self.bot.user
                 has_embeds = len(session_message.embeds) > 0
@@ -34,9 +43,8 @@ class SessionsModule(commands.Cog):
                 if is_bot and has_embeds and session_reaction:
                     selected_the_movie = network_layer.select_movie(session.id, message.content)
                     if selected_the_movie:
-                        session = network_layer.create_new_session(message.guild)
                         await session_message.delete()
-                        await generate_embed_for_session(session, channel=message.channel)
+                        await generate_embed_for_session(message.guild.id, channel=message.channel)
                     else:
                         await message.channel.send(f'Фильм не найден (`{message.content}`)')
 

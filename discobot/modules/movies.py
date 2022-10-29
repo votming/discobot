@@ -34,8 +34,8 @@ class MoviesModule(commands.Cog):
 
                 if backend_info is None:
                     network_layer.register_movie(movie)
-                movie = ParsedMovie(**{**movie.toJSON(), **network_layer.get_movie(uuid=movie.uuid, guild_id=message.guild.id).toJSON()})
-                await generate_embed_for_movie(movie, channel=message.channel)
+                #movie = ParsedMovie(**{**movie.toJSON(), **network_layer.get_movie(uuid=movie.uuid, guild_id=message.guild.id).toJSON()})
+                await generate_embed_for_movie(movie.uuid, message.guild.id, channel=message.channel)
         except Exception as e:
             print(str(e))
 

@@ -60,9 +60,9 @@ def update_guild(guild):
     print(response.content)
 
 
-def create_new_session(guild):
-    print(f'create_new_session, guild: {guild}')
-    response = requests.post(f'http://127.0.0.1:{BACKEND_PORT}/api/session', json={'guild_id': guild.id})
+def get_guild_session(guild_id):
+    print(f'get_guild_session, guild: {guild_id}')
+    response = requests.post(f'http://127.0.0.1:{BACKEND_PORT}/api/session', json={'guild_id': guild_id})
     print(response.content)
     return Session(**response.json())
 

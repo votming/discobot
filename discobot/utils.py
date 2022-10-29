@@ -7,7 +7,7 @@ from config import FILM_EMOJI, FILM_CONTROL_EMOJIS, FILM_RATING_EMOJI, BACK_EMOJ
     SESSION_EMOJI, SESSION_CONTROL_NO_FILM_EMOJIS, DECLINE_MOVIE_SESSION_EMOJI, SESSION_CONTROL_WITH_FILM_EMOJIS, \
     ANIMALS, BLACK_SCORE_EMOJI, SCORE_EMOJI, SESSIONS_PER_PAGE, HISTORY_CONTROL_EMOJIS, HISTORY_EMOJI
 from models import ParsedMovie, Session, History
-from network_layer import get_movie, create_new_session, get_session
+from network_layer import get_movie, get_guild_session, get_session, get_history
 
 
 async def display_message(embed: discord.Embed, message: discord.Message, new_emojis: list, channel):
@@ -25,7 +25,8 @@ async def display_message(embed: discord.Embed, message: discord.Message, new_em
         for emoji in new_emojis:
             await message.add_reaction(emoji)
 
-async def generate_embed_for_movie(movie: ParsedMovie, message=None, channel=None):
+async def generate_embed_for_movie(movie_uuid: int, guild_id:int, message=None, channel=None):
+    movie = get_movie(uuid=movie_uuid, guild_id=guild_id)
     title = f'{movie.name} {FILM_EMOJI}'
     want_to_see = ', '.join([user['mention'] for user in movie.want_to_see]) if len(movie.want_to_see) > 0 else 'никто'
     already_seen = ', '.join([user['mention'] for user in movie.already_seen]) if len(movie.already_seen) > 0 else 'никто'
@@ -62,7 +63,8 @@ def get_ranking_value(rating):
     return output
 
 
-async def generate_embed_for_session(session: Session, message=None, channel=None):
+async def generate_embed_for_session(guild_id: int, message=None, channel=None):
+    session = get_guild_session(guild_id)
     embed = discord.Embed(title=f'Киносеанс {SESSION_EMOJI}')
     audience = ', '.join([user['mention'] for user in session.audience]) if len(session.audience) > 0 else 'Ещё никто не присоеденился'
     embed.add_field(name='Зрители', value=audience, inline=False)
@@ -84,7 +86,10 @@ async def generate_embed_for_session(session: Session, message=None, channel=Non
     await display_message(embed, message, emojis_to_display, channel)
 
 
-async def generate_embed_for_finishing_movie(session: Session = None, movie: ParsedMovie = None, message=None, channel=None, guild=None):
+async def generate_embed_for_finishing_movie(session_id: int = None, movie: ParsedMovie = None, message=None, channel=None, guild=None):
+    session = None
+    if session_id:
+        session = get_session(session_id)
     if not movie and session:
         movie = get_movie(uuid=session.movie['uuid'], guild_id=guild.id)
     if not session and movie and movie.sessions:
@@ -119,7 +124,8 @@ def get_audience(users: list, seed: str):
     return ', '.join(output)
 
 
-async def generate_embed_for_history(history: History, message: discord.Message = None, channel: discord.TextChannel = None):
+async def generate_embed_for_history(guild_id: int, page=0, message: discord.Message = None, channel: discord.TextChannel = None):
+    history = get_history(guild_id, page=page)
     guild_name = message.guild.name if message else channel.guild.name
     channel = channel if channel else message.channel
     title = f'Киносеансы **{guild_name}** {HISTORY_EMOJI}'
@@ -128,7 +134,7 @@ async def generate_embed_for_history(history: History, message: discord.Message 
         viewed_movies = []
         for session in history.sessions:
             rating = f"`({session.movie['average_rating'] if session.movie['average_rating'] and session.movie['average_rating']>0 else POOP_EMOJI})` " if session.movie else ' '
-            movie_title = session.movie['name'] if session.movie else 'Фильм не указан'#история
+            movie_title = session.movie['name'] if session.movie else 'Фильм не указан'
             movie_title = f'{rating}{movie_title}'
             viewed_movies.append(f"`{session.seen_at}` {movie_title}")
         max_pages = math.ceil(history.count/SESSIONS_PER_PAGE)
