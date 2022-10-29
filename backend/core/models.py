@@ -66,10 +66,15 @@ class Session(models.Model):
 
     def get_top_movies(self, members_ids: list):
         movies = Movie.objects.filter(guild=self.guild, session__seen_at__gt='2022-01-01')
-        suggesters = set(members_ids).difference(set(self.audience.all().values_list('id', flat=True)))
+        audience_ids = set(self.audience.all().values_list('id', flat=True))
+        suggesters = set(members_ids).difference(audience_ids)
         print(suggesters)
-        movies = movies.filter(already_seen__in=suggesters)
-        self.club_has_seen = movies.distinct().all()
+        movies = movies.filter(already_seen__in=suggesters).distinct().all()
+        output = []
+        for movie in movies:
+            if set(audience_ids).isdisjoint(suggesters):
+                output.append(movie)
+        self.club_has_seen = output#movies.distinct().all()
 
     @property
     def available_movies(self):
