@@ -20,6 +20,7 @@ class RatingSerializer(serializers.ModelSerializer):
 class MovieSerializer(serializers.ModelSerializer):
     already_seen = UserSerializer(read_only=True, many=True)
     want_to_see = UserSerializer(read_only=True, many=True)
+    dont_want_to_watch = UserSerializer(read_only=True, many=True)
     rankings = RatingSerializer(source='movie_rankings', many=True, read_only=True)
     sessions = serializers.PrimaryKeyRelatedField(source='session_set', many=True, read_only=True)
     average_rating = serializers.FloatField(read_only=True)

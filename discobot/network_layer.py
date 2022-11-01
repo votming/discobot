@@ -73,6 +73,13 @@ def leave_session(session_id, user):
 
 
 @log_api_call
+def set_dont_want_to_watch(movie_id, guild_id, user):
+    user = {'user': {'id': user.id, 'name': user.name, 'avatar': user.avatar.url, 'mention': user.mention},
+            'uuid': movie_id, 'guild_id': guild_id}
+    return requests.post(f'http://127.0.0.1:{BACKEND_PORT}/api/movie/dont_want_to_watch', json=json.dumps(user))
+
+
+@log_api_call
 def select_movie(session_id, movie_title):
     response = requests.post(f'http://127.0.0.1:{BACKEND_PORT}/api/session/{session_id}/select_movie', json=json.dumps({'title': movie_title}))
     return response.status_code < 300

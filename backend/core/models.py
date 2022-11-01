@@ -1,8 +1,6 @@
 from django.db import models
 from django.db.models import Q
 
-
-# Create your models here.
 from django.db.models import UniqueConstraint
 
 
@@ -14,7 +12,7 @@ class Guild(models.Model):
 
 
 class User(models.Model):
-    id = models.IntegerField(max_length=40, primary_key=True)
+    id = models.IntegerField(primary_key=True)
     name = models.CharField(max_length=50)
     avatar = models.CharField(max_length=400, null=True)
     mention = models.CharField(max_length=40, null=True)
@@ -31,6 +29,7 @@ class Movie(models.Model):
     image = models.CharField(max_length=450, default=None, null=True)
     already_seen = models.ManyToManyField(User, blank=True, related_name='already_seen')
     want_to_see = models.ManyToManyField(User, blank=True, related_name='want_to_see')
+    dont_want_to_watch = models.ManyToManyField(User, blank=True, related_name='dont_want_to_watch')
     rankings = models.ManyToManyField(User, through='Ranking')
     created_at = models.DateTimeField(auto_now=False, auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True, auto_now_add=False)
@@ -41,11 +40,7 @@ class Movie(models.Model):
     @property
     def average_rating(self):
         rows = Ranking.objects.filter(movie=self)
-        if len(rows) > 0:
-            return sum([row.rating for row in rows])/len(rows)
-        else:
-            return None
-
+        return sum([row.rating for row in rows]) / len(rows) if len(rows) > 0 else None
 
 
 class Session(models.Model):
@@ -59,24 +54,19 @@ class Session(models.Model):
     club_has_seen = []
 
     class Meta:
-        constraints = [
-            UniqueConstraint(fields=['guild'], condition=Q(seen_at=None),
-                             name='unique_guild_seen_at_none')
-        ]
+        constraints = [UniqueConstraint(fields=['guild'], condition=Q(seen_at=None), name='unique_guild_seen_at_none')]
 
-    def get_top_movies(self, members_ids: list):
+    def load_top_movies(self, members_ids: list):
         movies = Movie.objects.filter(guild=self.guild, session__seen_at__gt='2022-01-01')
         audience_ids = set(self.audience.all().values_list('id', flat=True))
         suggesters = set(members_ids).difference(audience_ids)
-        movies = movies.filter(session__audience__in=suggesters).distinct().all()
+        movies = movies.filter(Q(session__audience__in=suggesters) & ~Q(dont_want_to_watch__in=audience_ids)).distinct().all()
         output = []
         for movie in movies:
             if set(movie.already_seen.all().values_list('id', flat=True)).isdisjoint(audience_ids):
                 output.append(movie)
-        self.club_has_seen = sorted(output, reverse=True,key=lambda i: (i.average_rating if i.average_rating else -1))#movies.distinct().all()
+        self.club_has_seen = sorted(output, reverse=True, key=lambda i: (i.average_rating if i.average_rating else -1))
         return
-
-#movies = Movie.objects.filter(guild=253251169248477184, session__seen_at__gt='2022-01-01')
 
     @property
     def available_movies(self):
@@ -90,7 +80,7 @@ class Session(models.Model):
             movies = self.audience.first().want_to_see.all()
             for user in self.audience.all():
                 movies = movies.intersection(user.want_to_see.all())
-            return Movie.objects.filter(id__in=movies.values_list('id',flat=True)).exclude(already_seen__in=self.audience.all())
+            return Movie.objects.filter(guild=self.guild, id__in=movies.values_list('id',flat=True)).exclude(already_seen__in=self.audience.all())
         return []
 
 

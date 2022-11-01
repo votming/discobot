@@ -108,7 +108,7 @@ class SessionsViewSet(ModelViewSet):
             else:
                 session = Session.objects.create(guild_id=guild_id)
             if members_ids:
-                session.get_top_movies(members_ids)
+                session.load_top_movies(members_ids)
             serializer = SessionSerializer(session)
             return Response(serializer.data, status=status.HTTP_200_OK)
         else:

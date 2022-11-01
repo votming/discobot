@@ -13,6 +13,7 @@ class ParsedMovie:
     average_rating: int = None
     already_seen: list = None
     want_to_see: list = None
+    dont_want_to_watch: list = None
     sessions: list = None
     guild: str = None
     actors: str = None

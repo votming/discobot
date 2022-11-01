@@ -35,6 +35,7 @@ class MoviesViewSet(ModelViewSet):
         if not movie.already_seen.all().filter(id=user.id).exists():
             movie.want_to_see.remove(user)
             movie.already_seen.add(user)
+            movie.dont_want_to_watch.remove(user)
         print(f'rating: {data["rating"]}, user: {user}')
         return Response('ok')
 
@@ -45,6 +46,7 @@ class MoviesViewSet(ModelViewSet):
 
         movie.already_seen.add(user)
         movie.want_to_see.remove(user)
+        movie.dont_want_to_watch.remove(user)
         print(f'want to see: {list(movie.already_seen.all())}')
         return Response('ok')
 
@@ -55,6 +57,7 @@ class MoviesViewSet(ModelViewSet):
 
         movie.already_seen.remove(user)
         movie.want_to_see.remove(user)
+        movie.dont_want_to_watch.remove(user)
         return Response('ok')
 
     def subscribe_to_watch(self, request, *args, **kwargs):
@@ -64,7 +67,18 @@ class MoviesViewSet(ModelViewSet):
 
         movie.want_to_see.add(user)
         movie.already_seen.remove(user)
+        movie.dont_want_to_watch.remove(user)
         print(f'want to see: {list(movie.want_to_see.all())}')
+        return Response('ok')
+
+    def dont_want_to_watch(self, request, *args, **kwargs):
+        data = json.loads(request.data)
+        movie = Movie.objects.get(uuid=data['uuid'], guild_id=data['guild_id'])
+        user = self._validate_user(data['user']['id'], data['user'])
+
+        movie.want_to_see.remove(user)
+        movie.already_seen.remove(user)
+        movie.dont_want_to_watch.add(user)
         return Response('ok')
 
     def get_movie(self, request, *args, **kwargs):

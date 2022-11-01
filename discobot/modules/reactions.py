@@ -7,12 +7,12 @@ import wikipedia
 
 from config import FILM_EMOJI, FILM_SEEN_EMOJI, FILM_PLAN_TO_WATCH_EMOJI, FILM_RATING_EMOJI, FILM_RATING_EMOJIS, \
     BACK_EMOJI, SESSION_EMOJI, JOIN_SESSION_EMOJI, RANDOM_MOVIE_SESSION_EMOJI, FINISH_SESSION_EMOJI, \
-    DECLINE_MOVIE_SESSION_EMOJI, HISTORY_EMOJI, ARROW_RIGHT, ARROW_LEFT, SESSIONS_PER_PAGE
+    DECLINE_MOVIE_SESSION_EMOJI, HISTORY_EMOJI, ARROW_RIGHT, ARROW_LEFT, SESSIONS_PER_PAGE, FILM_DONT_WANT_TO_WATCH
 from models import ParsedMovie
 
 from network_layer import subscribe_to_see, get_movie, set_watched, set_rating, get_guild_session, \
     join_session, leave_session, set_unwatched, select_movie, decline_movie, select_random_movie, finish_session, \
-    get_session, get_history
+    get_session, get_history, set_dont_want_to_watch
 from utils.renderer import generate_embed_for_movie, generate_embed_for_session, generate_embed_for_finishing_movie, \
     generate_embed_for_history
 
@@ -158,15 +158,15 @@ class ReactionsModule(commands.Cog):
         elif emoji == FILM_PLAN_TO_WATCH_EMOJI:
             subscribe_to_see(movie.uuid, message.guild.id, user)
             await generate_embed_for_movie(movie.uuid, message.guild.id, message)
+        elif emoji == FILM_DONT_WANT_TO_WATCH:
+            set_dont_want_to_watch(movie.uuid, message.guild.id, user)
+            await generate_embed_for_movie(movie.uuid, message.guild.id, message)
         elif emoji == FILM_RATING_EMOJI:
             await generate_embed_for_finishing_movie(movie=movie, message=message)
 
     @classmethod
     async def handle_film_unreaction(cls, movie: ParsedMovie, user: discord.User, channel, emoji, message=None):
-        if emoji == FILM_SEEN_EMOJI:
-            set_unwatched(movie.uuid, message.guild.id, user)
-            await generate_embed_for_movie(movie.uuid, message.guild.id, message)
-        elif emoji == FILM_PLAN_TO_WATCH_EMOJI:
+        if emoji == FILM_SEEN_EMOJI or emoji == FILM_PLAN_TO_WATCH_EMOJI or emoji == FILM_DONT_WANT_TO_WATCH:
             set_unwatched(movie.uuid, message.guild.id, user)
             await generate_embed_for_movie(movie.uuid, message.guild.id, message)
 

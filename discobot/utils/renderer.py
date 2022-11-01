@@ -30,6 +30,7 @@ async def generate_embed_for_movie(movie_uuid: int, guild_id:int, message=None, 
     title = f'{movie.name} {FILM_EMOJI}'
     want_to_see = ', '.join([user['mention'] for user in movie.want_to_see]) if len(movie.want_to_see) > 0 else 'никто'
     already_seen = ', '.join([user['mention'] for user in movie.already_seen]) if len(movie.already_seen) > 0 else 'никто'
+    dont_want_to_watch = ', '.join([user['mention'] for user in movie.dont_want_to_watch]) if len(movie.dont_want_to_watch) > 0 else None
     #total_rating = get_total_rating(movie)
     embed = discord.Embed(title=title)
     if movie.average_rating is not None:
@@ -39,15 +40,10 @@ async def generate_embed_for_movie(movie_uuid: int, guild_id:int, message=None, 
     embed.add_field(name='В главных ролях', value=movie.actors, inline=True)
     embed.add_field(name='Кто хочет посмотреть', value=want_to_see, inline=False)
     embed.add_field(name='Кто уже видел', value=already_seen, inline=False)
+    if dont_want_to_watch:
+        embed.add_field(name='Не хотят смотреть', value=dont_want_to_watch, inline=False)
     embed.set_thumbnail(url=movie.image)
     await display_message(embed, message, FILM_CONTROL_EMOJIS, channel)
-
-
-# def get_total_rating(movie):
-#     total_rating = get_ranking_value(
-#         sum([ranking['rating'] for ranking in movie.rankings]) / len(movie.rankings)) if len(
-#         movie.rankings) > 0 else None
-#     return total_rating
 
 
 def get_ranking_value(rating):

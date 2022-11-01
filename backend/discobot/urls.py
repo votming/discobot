@@ -24,6 +24,7 @@ urlpatterns = [
     path('api/movie', MoviesViewSet.as_view({'post': 'create'})),
     path('api/movie/get', MoviesViewSet.as_view({'post': 'get_movie'})),
     path('api/movie/subscribe_to_watch', MoviesViewSet.as_view({'post': 'subscribe_to_watch'})),
+    path('api/movie/dont_want_to_watch', MoviesViewSet.as_view({'post': 'dont_want_to_watch'})),
     path('api/movie/watched', MoviesViewSet.as_view({'post': 'set_watched'})),
     path('api/movie/unwatched', MoviesViewSet.as_view({'post': 'set_unwatched'})),
     path('api/movie/rate', MoviesViewSet.as_view({'post': 'rate_movie'})),
