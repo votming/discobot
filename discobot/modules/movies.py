@@ -25,9 +25,10 @@ class MoviesModule(commands.Cog):
             if message.author == self.bot.user:
                 return
 
-            if message.content.startswith('#кинолента'):
+            if message.content.startswith('#кинолента') or message.content.startswith('кинолента') or \
+                    message.content.startswith('movie') or message.content.startswith('#movie'):
                 # Request movie from IMDB
-                movie = MovieParser.get_movie(name=message.content.replace('#кинолента ', ''))
+                movie = MovieParser.get_movie(name=message.content.split(' ', 1)[1])
                 movie.guild = message.guild.id
                 # Get additional info about the movie from our backend
                 backend_info = network_layer.get_movie(uuid=movie.uuid, guild_id=message.guild.id)

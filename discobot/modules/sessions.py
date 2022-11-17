@@ -19,8 +19,8 @@ class SessionsModule(commands.Cog):
             if message.author == self.bot.user:
                 return
 
-            history_command = message.content.startswith('#история')
-            session_command = message.content.startswith('#киносеанс')
+            history_command = message.content.startswith('#история') or message.content.startswith('history')
+            session_command = message.content.startswith('#киносеанс') or message.content.startswith('session')
             session_command_with_movie = message.content.startswith('#киносеанс ') and len(message.content) > 11
             reply = message.reference and message.reference.message_id
 
