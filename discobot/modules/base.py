@@ -11,11 +11,12 @@ from googleapiclient.discovery import build
 import openai
 
 openai.api_key = config.CHATGPT_API_KEY
-messages = [{
+default_message = {
     "role": "system", "content": "I want you ALWAYS act as a homie who swears alot, swears every time in almost "
                                  "every word. Answer in Russian. If you would not know the person or place I talk "
                                  "about just guess something"
-}]
+}
+channels_chatgpt = dict()
 
 
 class BaseModule(commands.Cog):
@@ -55,8 +56,12 @@ class BaseModule(commands.Cog):
         elif self.bot.user in message.mentions:
             m = message.content.replace(self.bot.user.mention, '')
             print(f'MESSAGE: {m}')
-            messages.append({"role": str(message.author.id), "content": message.content.replace(self.bot.user.mention, '')})
-            chat = openai.ChatCompletion.create(model='gpt-3.5-turbo', messages=messages)
+            if message.channel.id not in channels_chatgpt:
+                channels_chatgpt[message.channel.id] = [default_message]
+            messages = channels_chatgpt[message.channel.id]
+            content = message.content.replace(self.bot.user.mention, '')
+            messages.append({"role": str(message.author.id), "content": content})
+            chat = openai.ChatCompletion.create(model='gpt-3.5-turbo', messages=messages[message.channel.id])
             reply = chat.choices[0].message.content
             messages.append({"role": "homie", "content": reply})
             await message.channel.send(reply)
