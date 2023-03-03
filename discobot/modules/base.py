@@ -1,4 +1,5 @@
 import re
+from datetime import datetime, timedelta
 
 import discord
 from discord.ext import commands
@@ -14,7 +15,7 @@ openai.api_key = config.CHATGPT_API_KEY
 default_message = {
     "role": "system", "content": "I want you ALWAYS act as a homie who swears alot, swears every time in almost "
                                  "every word. Answer in Russian. If you would not know the person or place I talk "
-                                 "about just guess something"
+                                 "about just guess something funny and hiccup sometimes"
 }
 channels_chatgpt = dict()
 
@@ -39,8 +40,19 @@ class BaseModule(commands.Cog):
             return
 
         await self.bot.process_commands(message)
+        channel_id = str(message.channel.id)
+        next_reply_at = None
+        if channel_id not in channels_chatgpt:
+            self.add_channel_to_chatgpt_settings(channel_id)
+        next_reply_at = channels_chatgpt[channel_id]['last_reply'] + timedelta(seconds=10)
+        messages = channels_chatgpt[channel_id]['messages']
+        content = message.content.replace(self.bot.user.mention, '')
+        messages.append({"role": 'user', "content": content})
+
 
         print(message.content)
+        x = next_reply_at is not None and next_reply_at < datetime.now()
+        print(f'Time: {x}; {next_reply_at} < {datetime.now()}')
         if match := re.search('<@[!@&0-9]+>,? ты (.+)', message.content, re.IGNORECASE):
             await self.set_name(message, match.group(1))
         # elif match := re.search('что за (.+)\??', message.content.lower(), re.IGNORECASE) \
@@ -54,17 +66,23 @@ class BaseModule(commands.Cog):
         elif match := re.search('(.+)\?\?(\)\))?([0-9]+)?(\+)?', message.content, re.IGNORECASE):
             await self.get_google_images(message, match)
         elif self.bot.user in message.mentions:
-            m = message.content.replace(self.bot.user.mention, '')
-            print(f'MESSAGE: {m}')
-            if message.channel.id not in channels_chatgpt:
-                channels_chatgpt[message.channel.id] = [default_message]
-            messages = channels_chatgpt[message.channel.id]
-            content = message.content.replace(self.bot.user.mention, '')
-            messages.append({"role": str(message.author.id), "content": content})
-            chat = openai.ChatCompletion.create(model='gpt-3.5-turbo', messages=messages[message.channel.id])
+            await self.send_chatgpt_reply(messages, message.channel)
+        elif next_reply_at is not None and next_reply_at < datetime.now():
+            await self.send_chatgpt_reply(messages, message.channel)
+
+    async def send_chatgpt_reply(self, messages, channel):
+        try:
+            channel_id = str(channel.id)
+            chat = openai.ChatCompletion.create(model='gpt-3.5-turbo', messages=messages)
             reply = chat.choices[0].message.content
-            messages.append({"role": "homie", "content": reply})
-            await message.channel.send(reply)
+            messages.append({"role": "assistant", "content": reply})
+            channels_chatgpt[channel_id]['last_reply'] = datetime.now()
+            await channel.send(reply)
+        except Exception as ex:
+            print(ex)
+
+    def add_channel_to_chatgpt_settings(self, channel_id):
+        channels_chatgpt[channel_id] = {'last_reply': datetime.now(), 'messages': [default_message]}
 
     async def set_name(self, message, name):
         try:
