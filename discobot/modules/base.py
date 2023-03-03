@@ -8,6 +8,12 @@ import wikipedia
 import network_layer
 from modules.reactions import WIKI_EMBED_TITLE
 from googleapiclient.discovery import build
+import openai
+
+openai.api_key = config.CHATGPT_API_KEY
+messages = [{
+    "role": "system", "content": "You are a rude drunk man"
+}]
 
 
 class BaseModule(commands.Cog):
@@ -34,16 +40,22 @@ class BaseModule(commands.Cog):
         print(message.content)
         if match := re.search('<@[!@&0-9]+>,? ты (.+)', message.content, re.IGNORECASE):
             await self.set_name(message, match.group(1))
-        elif match := re.search('что за (.+)\??', message.content.lower(), re.IGNORECASE) \
-                      or re.search('что такое (.+)\??', message.content.lower(), re.IGNORECASE) \
-                      or re.search('кто такой (.+)\??', message.content.lower(), re.IGNORECASE) \
-                      or re.search('кто такая (.+)\??', message.content.lower(), re.IGNORECASE) \
-                      or re.search('кто такие (.+)\??', message.content.lower(), re.IGNORECASE) \
-                      or re.search('wtf is (.+)\??', message.content.lower(), re.IGNORECASE):
-            query = match.group(1)
-            await self.wiki_get_article(message, query)
+        # elif match := re.search('что за (.+)\??', message.content.lower(), re.IGNORECASE) \
+        #               or re.search('что такое (.+)\??', message.content.lower(), re.IGNORECASE) \
+        #               or re.search('кто такой (.+)\??', message.content.lower(), re.IGNORECASE) \
+        #               or re.search('кто такая (.+)\??', message.content.lower(), re.IGNORECASE) \
+        #               or re.search('кто такие (.+)\??', message.content.lower(), re.IGNORECASE) \
+        #               or re.search('wtf is (.+)\??', message.content.lower(), re.IGNORECASE):
+        #     query = match.group(1)
+        #     await self.wiki_get_article(message, query)
         elif match := re.search('(.+)\?\?(\)\))?([0-9]+)?(\+)?', message.content, re.IGNORECASE):
             await self.get_google_images(message, match)
+        elif self.bot.user in message.mentions:
+            messages.append({"role": "user", "content": message.content})
+            chat = openai.ChatCompletion.create(model='gpt-3.5-turbo', messages=messages)
+            reply = chat.choices[0].message.content
+            messages.append({"role": "assistant", "content": reply})
+            await message.channel.send(reply)
 
     async def set_name(self, message, name):
         try:
