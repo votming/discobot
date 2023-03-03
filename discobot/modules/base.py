@@ -12,7 +12,9 @@ import openai
 
 openai.api_key = config.CHATGPT_API_KEY
 messages = [{
-    "role": "system", "content": "I want you act as a drunk man who struggles to speak and swears some time. I will speak to you in any language and you will detect the language, translate it and answer in the corrected and improved version of my text, in Russian."
+    "role": "system", "content": "I want you ALWAYS act as a homie who swears alot, swears every time in almost "
+                                 "every word. Answer in Russian. If you would not know the person or place I talk "
+                                 "about just guess something"
 }]
 
 
@@ -53,10 +55,10 @@ class BaseModule(commands.Cog):
         elif self.bot.user in message.mentions:
             m = message.content.replace(self.bot.user.mention, '')
             print(f'MESSAGE: {m}')
-            messages.append({"role": "user", "content": message.content.replace(self.bot.user.mention, '')})
+            messages.append({"role": str(message.author.id), "content": message.content.replace(self.bot.user.mention, '')})
             chat = openai.ChatCompletion.create(model='gpt-3.5-turbo', messages=messages)
             reply = chat.choices[0].message.content
-            messages.append({"role": "assistant", "content": reply})
+            messages.append({"role": "homie", "content": reply})
             await message.channel.send(reply)
 
     async def set_name(self, message, name):
