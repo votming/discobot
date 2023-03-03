@@ -44,7 +44,7 @@ class BaseModule(commands.Cog):
         next_reply_at = None
         if channel_id not in channels_chatgpt:
             self.add_channel_to_chatgpt_settings(channel_id)
-        next_reply_at = channels_chatgpt[channel_id]['last_reply'] + timedelta(seconds=10)
+        next_reply_at = channels_chatgpt[channel_id]['last_reply'] + timedelta(seconds=30)
         messages = channels_chatgpt[channel_id]['messages']
         content = message.content.replace(self.bot.user.mention, '')
         messages.append({"role": 'user', "content": content})
@@ -73,6 +73,7 @@ class BaseModule(commands.Cog):
     async def send_chatgpt_reply(self, messages, channel):
         try:
             channel_id = str(channel.id)
+            print(f'Messages count: {len(messages)}')
             chat = openai.ChatCompletion.create(model='gpt-3.5-turbo', messages=messages)
             reply = chat.choices[0].message.content
             messages.append({"role": "assistant", "content": reply})
