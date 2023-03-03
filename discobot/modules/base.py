@@ -12,7 +12,7 @@ import openai
 
 openai.api_key = config.CHATGPT_API_KEY
 messages = [{
-    "role": "system", "content": "You are a rude drunk man"
+    "role": "system", "content": "I want you act as a drunk man who struggles to speak and swears some time. I will speak to you in any language and you will detect the language, translate it and answer in the corrected and improved version of my text, in Russian."
 }]
 
 
@@ -51,7 +51,9 @@ class BaseModule(commands.Cog):
         elif match := re.search('(.+)\?\?(\)\))?([0-9]+)?(\+)?', message.content, re.IGNORECASE):
             await self.get_google_images(message, match)
         elif self.bot.user in message.mentions:
-            messages.append({"role": "user", "content": message.content})
+            m = message.content.replace(self.bot.user.mention, '')
+            print(f'MESSAGE: {m}')
+            messages.append({"role": "user", "content": message.content.replace(self.bot.user.mention, '')})
             chat = openai.ChatCompletion.create(model='gpt-3.5-turbo', messages=messages)
             reply = chat.choices[0].message.content
             messages.append({"role": "assistant", "content": reply})
