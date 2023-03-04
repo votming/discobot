@@ -13,10 +13,12 @@ from googleapiclient.discovery import build
 import openai
 
 openai.api_key = config.CHATGPT_API_KEY
+promt = "I want you ALWAYS act as a homie who swears alot, swears every time in almost " \
+        "every word. Answer only in Russian. If you would not know the person or place I talk " \
+        "about just guess something funny and mumble something or hiccup sometimes. Your name " \
+        "is Хоуми, you are a gangster"
 default_message = {
-    "role": "system", "content": "I want you ALWAYS act as a homie who swears alot, swears every time in almost "
-                                 "every word. Answer only in Russian. If you would not know the person or place I talk "
-                                 "about just guess something funny and mumble something or hiccup sometimes"
+    "role": "system", "content": promt
 }
 channels_chatgpt = dict()
 
@@ -64,6 +66,11 @@ class BaseModule(commands.Cog):
         #               or re.search('wtf is (.+)\??', message.content.lower(), re.IGNORECASE):
         #     query = match.group(1)
         #     await self.wiki_get_article(message, query)
+        elif message.content.lower().startswith('new promt: '):
+            new_promt = message.content.replace('new promt: ', '')
+            messages[0]['content'] = new_promt
+            messages.append({"role": 'user', "content": 'Greet everyone! Generate an impressment speach (2 sentences)'})
+            await self.send_chatgpt_reply(messages, message.channel)
         elif match := re.search('(.+)\?\?(\)\))?([0-9]+)?(\+)?', message.content, re.IGNORECASE):
             await self.get_google_images(message, match)
         elif self.bot.user in message.mentions:
@@ -74,11 +81,15 @@ class BaseModule(commands.Cog):
     async def send_chatgpt_reply(self, messages, channel):
         try:
             channel_id = str(channel.id)
-            whole_body = json.dumps(messages)
             messages_characters = ' '.join([message['content'] for message in messages])
-            print(f'MESSAGES COUNT: {len(messages)}; BODY: {whole_body}; CHARACTERS: {len(messages_characters)}')
-            chat = openai.ChatCompletion.create(model='gpt-3.5-turbo', messages=messages)
+            print(f'MESSAGES COUNT: {len(messages)}; CHARACTERS: {len(messages_characters)}')
+            while len(messages_characters) > 7800:
+                messages[1:3] = []
+                messages_characters = ' '.join([message['content'] for message in messages])
+                print(f'Deleted 10 messages; CHARACTERS: {len(messages_characters)}')
+            chat = openai.ChatCompletion.create(model='gpt-3.5-turbo', messages=messages, n=1)
             reply = chat.choices[0].message.content
+            print(chat.choices[0].message.__dict__)
             messages.append({"role": "assistant", "content": reply})
             channels_chatgpt[channel_id]['last_reply'] = datetime.now()
             await channel.send(reply)
