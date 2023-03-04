@@ -1,3 +1,4 @@
+import json
 import re
 from datetime import datetime, timedelta
 
@@ -14,8 +15,8 @@ import openai
 openai.api_key = config.CHATGPT_API_KEY
 default_message = {
     "role": "system", "content": "I want you ALWAYS act as a homie who swears alot, swears every time in almost "
-                                 "every word. Answer in Russian. If you would not know the person or place I talk "
-                                 "about just guess something funny and hiccup sometimes"
+                                 "every word. Answer only in Russian. If you would not know the person or place I talk "
+                                 "about just guess something funny and mumble something or hiccup sometimes"
 }
 channels_chatgpt = dict()
 
@@ -73,7 +74,8 @@ class BaseModule(commands.Cog):
     async def send_chatgpt_reply(self, messages, channel):
         try:
             channel_id = str(channel.id)
-            print(f'Messages count: {len(messages)}')
+            whole_message = json.dumps(messages)
+            print(f'MESSAGES COUNT: {len(messages)}; CHARACTERS: {len(whole_message)}')
             chat = openai.ChatCompletion.create(model='gpt-3.5-turbo', messages=messages)
             reply = chat.choices[0].message.content
             messages.append({"role": "assistant", "content": reply})
@@ -81,6 +83,7 @@ class BaseModule(commands.Cog):
             await channel.send(reply)
         except Exception as ex:
             print(ex)
+            print(f'ERROR! MESSAGES COUNT: {len(messages)}; CHARACTERS: {len("".join(messages))}')
 
     def add_channel_to_chatgpt_settings(self, channel_id):
         channels_chatgpt[channel_id] = {'last_reply': datetime.now(), 'messages': [default_message]}
