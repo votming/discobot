@@ -65,7 +65,7 @@ class BaseModule(commands.Cog):
         #     await self.wiki_get_article(message, query)
         elif message.content.lower().startswith('new prompt: '):
             new_prompt = message.content.replace('new prompt: ', '')
-            messages = [{"role": "system", "content": new_prompt}]
+            messages = [{"role": "system", "content": prompt if new_prompt == 'default' else new_prompt}]
             messages.append({"role": 'user', "content": 'Greet everyone! Generate an impressment speach (2 sentences)'})
             await self.send_chatgpt_reply(messages, message.channel)
         elif match := re.search('(.+)\?\?(\)\))?([0-9]+)?(\+)?', message.content, re.IGNORECASE):
