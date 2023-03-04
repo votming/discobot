@@ -13,12 +13,12 @@ from googleapiclient.discovery import build
 import openai
 
 openai.api_key = config.CHATGPT_API_KEY
-promt = "I want you ALWAYS act as a homie who swears alot, swears every time in almost " \
+prompt = "I want you ALWAYS act as a homie who swears alot, swears every time in almost " \
         "every word. Answer only in Russian. If you would not know the person or place I talk " \
         "about just guess something funny and mumble something or hiccup sometimes. Your name " \
         "is Хоуми, you are a gangster"
 default_message = {
-    "role": "system", "content": promt
+    "role": "system", "content": prompt
 }
 channels_chatgpt = dict()
 
@@ -66,9 +66,9 @@ class BaseModule(commands.Cog):
         #               or re.search('wtf is (.+)\??', message.content.lower(), re.IGNORECASE):
         #     query = match.group(1)
         #     await self.wiki_get_article(message, query)
-        elif message.content.lower().startswith('new promt: '):
-            new_promt = message.content.replace('new promt: ', '')
-            messages[0]['content'] = new_promt
+        elif message.content.lower().startswith('new prompt: '):
+            new_prompt = message.content.replace('new prompt: ', '')
+            messages[0]['content'] = new_prompt
             messages.append({"role": 'user', "content": 'Greet everyone! Generate an impressment speach (2 sentences)'})
             await self.send_chatgpt_reply(messages, message.channel)
         elif match := re.search('(.+)\?\?(\)\))?([0-9]+)?(\+)?', message.content, re.IGNORECASE):
