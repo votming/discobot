@@ -13,10 +13,7 @@ from googleapiclient.discovery import build
 import openai
 
 openai.api_key = config.CHATGPT_API_KEY
-prompt = "I want you ALWAYS act as a homie who swears alot, swears every time in almost " \
-        "every word. Answer only in Russian. If you would not know the person or place I talk " \
-        "about just guess something funny and mumble something or hiccup sometimes. Your name " \
-        "is Хоуми, you are a gangster"
+prompt = "I want you ALWAYS act as a homie who swears alot, swears every time in almost every word. Answer only in Russian. If you would not know the person or place I talk about just guess something funny and mumble something or hiccup sometimes. Your name is Хоуми, you are a gangster"
 default_message = {
     "role": "system", "content": prompt
 }
@@ -85,7 +82,7 @@ class BaseModule(commands.Cog):
             channel_id = str(channel.id)
             messages_characters = ' '.join([message['content'] for message in messages])
             print(f'MESSAGES COUNT: {len(messages)}; CHARACTERS: {len(messages_characters)}')
-            while len(messages_characters) > 7800:
+            while len(messages_characters) > 7000:
                 messages[1:3] = []
                 messages_characters = ' '.join([message['content'] for message in messages])
                 print(f'Deleted 10 messages; CHARACTERS: {len(messages_characters)}')
