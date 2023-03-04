@@ -74,8 +74,9 @@ class BaseModule(commands.Cog):
     async def send_chatgpt_reply(self, messages, channel):
         try:
             channel_id = str(channel.id)
-            whole_message = json.dumps(messages)
-            print(f'MESSAGES COUNT: {len(messages)}; CHARACTERS: {len(whole_message)}')
+            whole_body = json.dumps(messages)
+            messages_characters = ' '.join([message['content'] for message in messages])
+            print(f'MESSAGES COUNT: {len(messages)}; BODY: {whole_body}; CHARACTERS: {len(messages_characters)}')
             chat = openai.ChatCompletion.create(model='gpt-3.5-turbo', messages=messages)
             reply = chat.choices[0].message.content
             messages.append({"role": "assistant", "content": reply})
