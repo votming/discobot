@@ -73,6 +73,8 @@ class BaseModule(commands.Cog):
             await self.send_chatgpt_reply(messages, message.channel)
         elif match := re.search('(.+)\?\?(\)\))?([0-9]+)?(\+)?', message.content, re.IGNORECASE):
             await self.get_google_images(message, match)
+        elif 'хоуми' in content.lower():
+            await self.send_chatgpt_reply(messages, message.channel)
         elif self.bot.user in message.mentions:
             await self.send_chatgpt_reply(messages, message.channel)
         elif next_reply_at is not None and next_reply_at < datetime.now():
