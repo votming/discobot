@@ -63,11 +63,15 @@ class BaseModule(commands.Cog):
         #               or re.search('wtf is (.+)\??', message.content.lower(), re.IGNORECASE):
         #     query = match.group(1)
         #     await self.wiki_get_article(message, query)
+        elif message.content.lower() == 'give messages log':
+            del messages[-1]
+            await message.channel.send('\n'.join([f'{message["content"][:50]}{"..." if len(message["content"])>50 else ""}' for message in messages]))
         elif message.content.lower().startswith('new prompt: '):
             new_prompt = message.content.replace('new prompt: ', '')
             messages = [{"role": "system", "content": prompt if new_prompt == 'default' else new_prompt}]
-            messages.append({"role": 'user', "content": 'Greet everyone! Generate an impressment speach (2 sentences)'})
-            await self.send_chatgpt_reply(messages, message.channel)
+            ghost_messages = [messages[0]]
+            ghost_messages.append({"role": 'user', "content": 'Поприветствуй всех в двух предложениях'})
+            await self.send_chatgpt_reply(ghost_messages, message.channel)
         elif match := re.search('(.+)\?\?(\)\))?([0-9]+)?(\+)?', message.content, re.IGNORECASE):
             await self.get_google_images(message, match)
         elif 'хоуми' in content.lower():
