@@ -1,4 +1,3 @@
-import json
 import re
 from datetime import datetime, timedelta
 
@@ -6,9 +5,7 @@ import discord
 from discord.ext import commands
 
 import config
-import wikipedia
 import network_layer
-from modules.reactions import WIKI_EMBED_TITLE
 from googleapiclient.discovery import build
 import openai
 
@@ -23,8 +20,7 @@ channels_chatgpt = dict()
 class BaseModule(commands.Cog):
 
     def __init__(self, bot):
-        print('MoviesModule enabled')
-        wikipedia.set_lang("ru")
+        print('BaseModule enabled')
         self.bot = bot
 
     @commands.Cog.listener()
@@ -40,6 +36,10 @@ class BaseModule(commands.Cog):
             return
 
         await self.bot.process_commands(message)
+
+        if message.content.startswith('!'):
+            return
+
         channel_id = str(message.channel.id)
         next_reply_at = None
         if channel_id not in channels_chatgpt:
@@ -55,14 +55,6 @@ class BaseModule(commands.Cog):
         print(f'Time: {x}; {next_reply_at} < {datetime.now()}')
         if match := re.search('<@[!@&0-9]+>,? ты (.+)', message.content, re.IGNORECASE):
             await self.set_name(message, match.group(1))
-        # elif match := re.search('что за (.+)\??', message.content.lower(), re.IGNORECASE) \
-        #               or re.search('что такое (.+)\??', message.content.lower(), re.IGNORECASE) \
-        #               or re.search('кто такой (.+)\??', message.content.lower(), re.IGNORECASE) \
-        #               or re.search('кто такая (.+)\??', message.content.lower(), re.IGNORECASE) \
-        #               or re.search('кто такие (.+)\??', message.content.lower(), re.IGNORECASE) \
-        #               or re.search('wtf is (.+)\??', message.content.lower(), re.IGNORECASE):
-        #     query = match.group(1)
-        #     await self.wiki_get_article(message, query)
         elif message.content.lower() == 'give messages log':
             del messages[-1]
             await message.channel.send('\n'.join([f'{message["content"][:50]}{"..." if len(message["content"])>50 else ""}' for message in messages]))
@@ -108,27 +100,6 @@ class BaseModule(commands.Cog):
             print(await message.mentions[0].edit(nick=name))
         except Exception as ex:
             await message.channel.send('Возникла ошибка при при установке имени.\nОшибка: `{}`'.format(ex))
-
-    async def wiki_get_article(self, message: discord.Message, query):
-        try:
-            pages = wikipedia.search(query, results=5)
-            print(pages)
-            response = ''
-            counter = 1
-
-            if len(pages) == 0:
-                raise Exception('Не найдено ни одной статьи')
-
-            for page in pages:
-                response += '{}. {}\n'.format(counter, page)
-                counter += 1
-
-            message = await message.channel.send(embed=discord.Embed(title=WIKI_EMBED_TITLE, description=response))
-            for emoji in config.NUMBERS_ONE_TO_FIVE:
-                await message.add_reaction(emoji)
-
-        except Exception as ex:
-            await message.channel.send(f'{ex} (`{query}`)')
 
     async def get_google_images(self, message, match):
         try:
