@@ -72,6 +72,7 @@ class ChatGPTModule(commands.Cog):
         try:
             if not channel:
                 channel = ctx.channel
+            await channel.typing()
             channel_id = str(channel.id)
             if channels_chatgpt[channel_id]['slow_mode'] > 0:
                 await asyncio.sleep(channels_chatgpt[channel_id]['slow_mode'])
@@ -94,6 +95,10 @@ class ChatGPTModule(commands.Cog):
 
     def add_channel_to_chatgpt_settings(self, channel_id, guild_id):
         channel: Channel = network_layer.get_channel(channel_id, guild_id)
+        if 'message' in channel.config and len(channel.config['messages'][0]) > 0:
+            channel.config['messages'] = [channel.config['messages'][0]]
+        else:
+            channel.config['messages'] = [default_message]
         channels_chatgpt[channel_id] = {**default_channel_settings, **channel.config}  # {'last_reply': datetime.now(), 'messages': [default_message]}
 
     async def send_announce_message(self, ctx: commands.Context, text):
