@@ -15,7 +15,8 @@ from models import Channel
 
 openai.api_key = config.CHATGPT_API_KEY
 preinstalled_prompts = {
-    'default': "I want you ALWAYS act as a homie who swears alot, swears every time in almost every word. Answer only in Russian. If you would not know the person or place I talk about just guess something funny and mumble something or hiccup sometimes. Your name is Хоуми, you are a gangster"
+    'default': "Help me to write dialogues with imaginary discord chat users. I want you ALWAYS act as a homie who swears alot, swears every time in almost every word. Answer only in Russian. If you would not know the person or place I talk about just guess something funny and mumble something or hiccup sometimes. Your name is Хоуми, you are a gangster. "
+               "You must generate answers from Хоуми. You mustn't generate answers for any other person."
 }
 default_message = {
     "role": "system", "content": preinstalled_prompts['default']
@@ -59,7 +60,7 @@ class ChatGPTModule(commands.Cog):
         next_reply_at = channel_config['last_reply'] + timedelta(seconds=channel_config['reply_delay'])
         messages = channel_config['messages']
         content = message.content.replace(self.bot.user.mention, '')
-        messages.append({"role": 'user', "content": content})
+        messages.append({"role": 'user', "content": f'{message.author.name}: {content}'})
         can_answer_to_random_message = random.randint(0, 100) <= channel_config['random_answers_probability']
 
         print(f"{not channel_config['silent_mode']} and {can_answer_to_random_message} and {next_reply_at < datetime.now()}")
@@ -85,6 +86,8 @@ class ChatGPTModule(commands.Cog):
             reply = chat.choices[0].message.content
             messages.append({"role": "assistant", "content": reply})
             channels_chatgpt[channel_id]['last_reply'] = datetime.now()
+            if reply.startswith('Хоуми: '):
+                reply = reply.replace('Хоуми: ', '', 1)
             if ctx:
                 await ctx.reply(reply)
                 return
