@@ -1,7 +1,6 @@
 from rest_framework import serializers
 
-from core.models import Movie, Guild, User, Ranking, Session
-
+from core.models import Movie, Guild, User, Ranking, Session, Channel
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -33,6 +32,14 @@ class MovieSerializer(serializers.ModelSerializer):
 class GuildSerializer(serializers.ModelSerializer):
     class Meta:
         model = Guild
+        fields = '__all__'
+
+
+class ChannelSerializer(serializers.ModelSerializer):
+    id = serializers.CharField(required=False)
+    guild = serializers.CharField(required=False)
+    class Meta:
+        model = Channel
         fields = '__all__'
 
 

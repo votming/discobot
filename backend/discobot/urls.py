@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.urls import path, include
 
+from core.views.channel import ChannelViewSet
 from core.views.guilds import GuildsViewSet
 from core.views.movies import MoviesViewSet
 from core.views.sessions import SessionsViewSet
@@ -10,6 +11,9 @@ urlpatterns = [
 
     path('api/guild', GuildsViewSet.as_view({'post': 'create'})),
     path('api/handshake', GuildsViewSet.as_view({'get': 'handshake'})),
+
+    path('api/channel', ChannelViewSet.as_view({'post': 'create'})),
+    path('api/channel/<pk>', ChannelViewSet.as_view({'get': 'retrieve', 'patch': 'update'})),
 
     path('api/session', SessionsViewSet.as_view({'post': 'create'})),
     path('api/session/by_guild/<guild_id>', SessionsViewSet.as_view({'get': 'list'})),

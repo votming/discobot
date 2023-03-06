@@ -84,6 +84,14 @@ class Session(models.Model):
         return []
 
 
+class Channel(models.Model):
+    id = models.CharField(max_length=30, primary_key=True)
+    guild = models.ForeignKey(Guild, on_delete=models.CASCADE)
+    config = models.JSONField(default=dict)
+    created_at = models.DateTimeField(auto_now=False, auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True, auto_now_add=False)
+
+
 class Ranking(models.Model):
     movie = models.ForeignKey(Movie, on_delete=models.CASCADE, related_name='movie_rankings')
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_rankings')

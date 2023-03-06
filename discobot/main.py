@@ -4,6 +4,7 @@ import asyncio
 import config
 import discord
 from discord.ext import commands
+from discord import app_commands
 
 from modules.background_worker import BackgroundWorkerModule
 
@@ -16,6 +17,7 @@ async def main():
     await client.load_extension('modules.sessions')
     await client.load_extension('modules.voice')
     await client.load_extension('modules.base')
+    await client.load_extension('modules.chatgpt')
     await client.start(config.bot_token)
 
 

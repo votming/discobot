@@ -4,12 +4,9 @@ from datetime import datetime, timedelta
 import discord
 from discord.ext import commands
 
-import config
 import network_layer
 from googleapiclient.discovery import build
-import openai
 
-openai.api_key = config.CHATGPT_API_KEY
 prompt = "I want you ALWAYS act as a homie who swears alot, swears every time in almost every word. Answer only in Russian. If you would not know the person or place I talk about just guess something funny and mumble something or hiccup sometimes. Your name is Хоуми, you are a gangster"
 default_message = {
     "role": "system", "content": prompt
@@ -22,6 +19,7 @@ class BaseModule(commands.Cog):
     def __init__(self, bot):
         print('BaseModule enabled')
         self.bot = bot
+        self.synced = False
 
     @commands.Cog.listener()
     async def on_ready(self):
@@ -30,7 +28,6 @@ class BaseModule(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
-        print(message)
         global voice_channels
         if message.author == self.bot.user:
             return
@@ -40,57 +37,10 @@ class BaseModule(commands.Cog):
         if message.content.startswith('!'):
             return
 
-        channel_id = str(message.channel.id)
-        next_reply_at = None
-        if channel_id not in channels_chatgpt:
-            self.add_channel_to_chatgpt_settings(channel_id)
-        next_reply_at = channels_chatgpt[channel_id]['last_reply'] + timedelta(seconds=30)
-        messages = channels_chatgpt[channel_id]['messages']
-        content = message.content.replace(self.bot.user.mention, '')
-        messages.append({"role": 'user', "content": content})
-
-
-        print(message.content)
-        x = next_reply_at is not None and next_reply_at < datetime.now()
-        print(f'Time: {x}; {next_reply_at} < {datetime.now()}')
         if match := re.search('<@[!@&0-9]+>,? ты (.+)', message.content, re.IGNORECASE):
             await self.set_name(message, match.group(1))
-        elif message.content.lower() == 'give messages log':
-            del messages[-1]
-            await message.channel.send('\n'.join([f'{message["content"][:50]}{"..." if len(message["content"])>50 else ""}' for message in messages]))
-        elif message.content.lower().startswith('new prompt: '):
-            new_prompt = message.content.replace('new prompt: ', '')
-            messages = [{"role": "system", "content": prompt if new_prompt == 'default' else new_prompt}]
-            ghost_messages = [messages[0]]
-            ghost_messages.append({"role": 'user', "content": 'Поприветствуй всех в двух предложениях'})
-            await self.send_chatgpt_reply(ghost_messages, message.channel)
         elif match := re.search('(.+)\?\?(\)\))?([0-9]+)?(\+)?', message.content, re.IGNORECASE):
             await self.get_google_images(message, match)
-        elif 'хоуми' in content.lower():
-            await self.send_chatgpt_reply(messages, message.channel)
-        elif self.bot.user in message.mentions:
-            await self.send_chatgpt_reply(messages, message.channel)
-        elif next_reply_at is not None and next_reply_at < datetime.now():
-            await self.send_chatgpt_reply(messages, message.channel)
-
-    async def send_chatgpt_reply(self, messages, channel):
-        try:
-            channel_id = str(channel.id)
-            messages_characters = ' '.join([message['content'] for message in messages])
-            print(f'MESSAGES COUNT: {len(messages)}; CHARACTERS: {len(messages_characters)}')
-            while len(messages_characters) > 7000:
-                messages[1:3] = []
-                messages_characters = ' '.join([message['content'] for message in messages])
-                print(f'Deleted 10 messages; CHARACTERS: {len(messages_characters)}')
-            chat = openai.ChatCompletion.create(model='gpt-3.5-turbo', messages=messages, n=1)
-            reply = chat.choices[0].message.content
-            print(chat.choices[0].message.__dict__)
-            messages.append({"role": "assistant", "content": reply})
-            channels_chatgpt[channel_id]['last_reply'] = datetime.now()
-            await channel.send(reply)
-        except Exception as ex:
-            print(ex)
-            print(f'ERROR! MESSAGES COUNT: {len(messages)}; CHARACTERS: {len("".join(messages))}')
 
     def add_channel_to_chatgpt_settings(self, channel_id):
         channels_chatgpt[channel_id] = {'last_reply': datetime.now(), 'messages': [default_message]}
@@ -130,6 +80,14 @@ class BaseModule(commands.Cog):
         except Exception as ex:
             await message.channel.send(f'Возникла ошибка при загрузке картинок. \nЗапрос: `{query}` \nОшибка: `{ex}`')
 
+    @commands.command()
+    async def sync(self, ctx: commands.Context):
+        if ctx.author.id == 237325355696783364:
+            await ctx.send('Trying to sync')
+            await self.bot.tree.sync()
+            await ctx.send('Command tree synced!')
+        else:
+            await ctx.send('You must be the owner to use this command!')
 
 async def setup(bot):
     await bot.add_cog(BaseModule(bot))

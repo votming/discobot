@@ -3,7 +3,7 @@ import json
 import requests
 
 from config import SESSIONS_PER_PAGE, BACKEND_PORT
-from models import ParsedMovie, Session, History
+from models import ParsedMovie, Session, History, Channel
 from utils.decorators import log_api_call
 
 
@@ -114,6 +114,23 @@ def get_history(guild_id, page=0) -> History:
     for data in json['results']:
         sessions.append(Session(**data))
     return History(sessions=sessions, page=page+1, count=json['count'])
+
+
+@log_api_call
+def get_channel(channel_id, guild_id=None) -> Channel:
+    response = requests.get(f'http://127.0.0.1:{BACKEND_PORT}/api/channel/{channel_id}')
+    if response.status_code != 200:
+        response = requests.post(f'http://127.0.0.1:{BACKEND_PORT}/api/channel', json={'id': channel_id, 'guild': guild_id})
+    data = response.json()
+    return Channel(id=data['id'], guild=data['guild'], config=data['config'])
+
+
+@log_api_call
+def update_channel(channel_id, obj):
+    obj.pop('last_reply')
+    if 'messages' in obj and len(obj['messages']) > 1:
+        obj['messages'] = [obj['messages'][0]]
+    response = requests.patch(f'http://127.0.0.1:{BACKEND_PORT}/api/channel/{channel_id}', json={'config': obj})
 
 
 @log_api_call

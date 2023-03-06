@@ -43,6 +43,12 @@ class Session:
 
 
 @dataclass
+class Channel:
+    id: int
+    guild: str
+    config: dict
+
+@dataclass
 class History:
     sessions: list
     count: int
