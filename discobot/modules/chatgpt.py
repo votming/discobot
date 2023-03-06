@@ -70,8 +70,9 @@ class ChatGPTModule(commands.Cog):
 
     async def send_chatgpt_reply(self, messages, channel=None, ctx=None):
         try:
-            channel_id = str(channel.id if channel else ctx.channel.id)
-            channel = channel or ctx.channel
+            if not channel:
+                channel = ctx.channel
+            channel_id = str(channel.id)
             if channels_chatgpt[channel_id]['slow_mode'] > 0:
                 await asyncio.sleep(channels_chatgpt[channel_id]['slow_mode'])
             messages_characters = ' '.join([message['content'] for message in messages])
