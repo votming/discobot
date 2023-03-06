@@ -13,6 +13,3 @@ class ChannelViewSet(ModelViewSet):
 
     def get_queryset(self) -> QuerySet:
         return Channel.objects.all()
-
-    def update_config(self, request, *args, **kwargs):
-        x=1

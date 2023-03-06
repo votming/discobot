@@ -37,7 +37,7 @@ class GuildSerializer(serializers.ModelSerializer):
 
 class ChannelSerializer(serializers.ModelSerializer):
     id = serializers.CharField(required=False)
-    guild = serializers.CharField(required=False)
+    guild = serializers.PrimaryKeyRelatedField(required=False, queryset=Guild.objects.all())
     class Meta:
         model = Channel
         fields = '__all__'
