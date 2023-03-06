@@ -101,7 +101,7 @@ class ChatGPTModule(commands.Cog):
         ghost_messages = [messages[0], {"role": 'user', "content": text}]
         await self.send_chatgpt_reply(ghost_messages, ctx=ctx)
 
-    @commands.hybrid_command(name='new_prompt')
+    @commands.hybrid_command(name='new_prompt', description='Generate new prompt for the bot (also deletes whole history log)')
     async def new_prompt(self, ctx: commands.Context, prompt: str):
         try:
             channel_id = await self.command_prepare(ctx)
@@ -111,7 +111,7 @@ class ChatGPTModule(commands.Cog):
         except Exception as ex:
             print(ex)
 
-    @commands.hybrid_command(name='messages_log')
+    @commands.hybrid_command(name='messages_log', description='Ask bot to show history log of messages')
     async def messages_log(self, ctx: commands.Context):
         channel_id = await self.command_prepare(ctx)
         messages = channels_chatgpt[channel_id]['messages']
@@ -119,25 +119,25 @@ class ChatGPTModule(commands.Cog):
         await ctx.channel.send(content)
         await ctx.interaction.delete_original_response()
 
-    @commands.hybrid_command(name='silent')
+    @commands.hybrid_command(name='silent', description="Allow bot to answer not direct messages (without mentions)")
     async def silent(self, ctx: commands.Context, mode: bool):
         channel_id = await self.command_prepare(ctx)
         channels_chatgpt[channel_id]['silent_mode'] = mode
         await self.command_response(ctx, f'Сгенерируй сообщение для пользователей в чате том как ты {"зол" if mode else "рад"} что для тебя только что был {"включен" if mode else "выключен"} "silent-mode"')
 
-    @commands.hybrid_command(name='reply_delay')
+    @commands.hybrid_command(name='reply_delay', description="Ban bot's ability to answer for N seconds (only indirect messages")
     async def reply_delay(self, ctx: commands.Context, seconds: int):
         channel_id = await self.command_prepare(ctx)
         channels_chatgpt[channel_id]['reply_delay'] = seconds
-        await self.command_response(ctx, f'Сгенерируй короткое сообщение для пользователей в чате о том что теперь ты не будешь отвечать чаще, чем {seconds} секунд')
+        await self.command_response(ctx, f'Сгенерируй короткое сообщение для пользователей в чате о том что теперь ты будешь отвечать не чаще, чем {seconds} секунд')
 
-    @commands.hybrid_command(name='slow_mode')
+    @commands.hybrid_command(name='slow_mode', description="Delay messages from the bot. It would generate message immediately, but would send after N seconds")
     async def slow_mode(self, ctx: commands.Context, seconds: int):
         channel_id = await self.command_prepare(ctx)
         channels_chatgpt[channel_id]['slow_mode'] = seconds
         await self.command_response(ctx, f'Сгенерируй короткое сообщение для пользователей в чате о том что у тебя {f"слоу-мод {seconds} секунд" if seconds > 0 else "больше нет слоу-мода"}')
 
-    @commands.hybrid_command(name='answer_frequency')
+    @commands.hybrid_command(name='answer_frequency', description='How often bot would answer to indirect messages')
     async def answer_frequency(self, ctx: commands.Context, frequency: AnswerFrequencyEnum):
         channel_id = await self.command_prepare(ctx)
         channels_chatgpt[channel_id]['random_answers_probability'] = frequency.value
