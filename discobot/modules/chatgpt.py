@@ -68,9 +68,10 @@ class ChatGPTModule(commands.Cog):
         elif not channel_config['silent_mode'] and can_answer_to_random_message and next_reply_at < datetime.now():
             await self.send_chatgpt_reply(messages, message.channel)
 
-    async def send_chatgpt_reply(self, messages, channel):
+    async def send_chatgpt_reply(self, messages, channel=None, ctx=None):
         try:
-            channel_id = str(channel.id)
+            channel_id = str(channel.id if channel else ctx.channel.id)
+            channel = channel or ctx.channel
             if channels_chatgpt[channel_id]['slow_mode'] > 0:
                 await asyncio.sleep(channels_chatgpt[channel_id]['slow_mode'])
             messages_characters = ' '.join([message['content'] for message in messages])
@@ -82,6 +83,9 @@ class ChatGPTModule(commands.Cog):
             reply = chat.choices[0].message.content
             messages.append({"role": "assistant", "content": reply})
             channels_chatgpt[channel_id]['last_reply'] = datetime.now()
+            if ctx:
+                await ctx.reply(reply)
+                return
             await channel.send(reply)
         except Exception as ex:
             await channel.send(ex)
@@ -91,19 +95,21 @@ class ChatGPTModule(commands.Cog):
         channel: Channel = network_layer.get_channel(channel_id, guild_id)
         channels_chatgpt[channel_id] = {**default_channel_settings, **channel.config}  # {'last_reply': datetime.now(), 'messages': [default_message]}
 
-    async def send_announce_message(self, channel: discord.TextChannel, text):
-        channel_id = str(channel.id)
+    async def send_announce_message(self, ctx: commands.Context, text):
+        channel_id = str(ctx.channel.id)
         messages = channels_chatgpt[channel_id]['messages']
         ghost_messages = [messages[0], {"role": 'user', "content": text}]
-        await self.send_chatgpt_reply(ghost_messages, channel)
+        await self.send_chatgpt_reply(ghost_messages, ctx=ctx)
 
     @commands.hybrid_command(name='new_prompt')
     async def new_prompt(self, ctx: commands.Context, prompt: str):
-        channel_id = await self.command_prepare(ctx)
-        new_prompt = preinstalled_prompts[prompt] if prompt in preinstalled_prompts else prompt
-        channels_chatgpt[channel_id]['messages'] = [{"role": "system", "content": new_prompt}]
-        await self.send_announce_message(ctx.message.channel, 'Поприветствуй всех в двух предложениях')
-        await ctx.interaction.delete_original_response()
+        try:
+            channel_id = await self.command_prepare(ctx)
+            new_prompt = preinstalled_prompts[prompt] if prompt in preinstalled_prompts else prompt
+            channels_chatgpt[channel_id]['messages'] = [{"role": "system", "content": new_prompt}]
+            await self.send_announce_message(ctx, 'Поприветствуй всех в двух предложениях')
+        except Exception as ex:
+            print(ex)
 
     @commands.hybrid_command(name='messages_log')
     async def messages_log(self, ctx: commands.Context):
@@ -146,8 +152,7 @@ class ChatGPTModule(commands.Cog):
 
     async def command_response(self, ctx, message):
         channel_id = str(ctx.channel.id)
-        await self.send_announce_message(ctx.channel, message)
-        await ctx.interaction.delete_original_response()
+        await self.send_announce_message(ctx, message)
         obj = copy.deepcopy(channels_chatgpt[channel_id])
         network_layer.update_channel(channel_id, obj)
 
