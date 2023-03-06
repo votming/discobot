@@ -26,7 +26,7 @@ class BackgroundWorkerModule:
             sleep = 5
             if self.bot.is_ready():
                 is_backend_alive = network_layer.handshake()
-                activity = GREEN_CIRCLE if is_backend_alive else RED_CIRCLE
+                activity = 'ChatGPT' if is_backend_alive else 'by myself'
                 sleep = 30 * 60 if is_backend_alive else 60
                 await self.bot.change_presence(activity=discord.Game(name=activity))
             return sleep

@@ -130,10 +130,9 @@ def update_channel(channel_id, obj):
     obj.pop('last_reply')
     if 'messages' in obj and len(obj['messages']) > 1:
         obj['messages'] = [obj['messages'][0]]
-    response = requests.patch(f'http://127.0.0.1:{BACKEND_PORT}/api/channel/{channel_id}', json={'config': obj})
+    requests.patch(f'http://127.0.0.1:{BACKEND_PORT}/api/channel/{channel_id}', json={'config': obj})
 
 
-@log_api_call
 def handshake():
     try:
         response = requests.get(f'http://127.0.0.1:{BACKEND_PORT}/api/handshake')
