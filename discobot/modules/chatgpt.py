@@ -119,7 +119,7 @@ class ChatGPTModule(commands.Cog):
         await ctx.channel.send(content)
         await ctx.interaction.delete_original_response()
 
-    @commands.hybrid_command(name='silent', description="Allow bot to answer not direct messages (without mentions)")
+    @commands.hybrid_command(name='silent', description="Allow bot to answer to indirect messages (without mentions)")
     async def silent(self, ctx: commands.Context, mode: bool):
         channel_id = await self.command_prepare(ctx)
         channels_chatgpt[channel_id]['silent_mode'] = mode
