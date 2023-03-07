@@ -2,6 +2,7 @@ import asyncio
 import copy
 import enum
 import random
+import re
 from datetime import datetime, timedelta
 
 import discord
@@ -14,9 +15,11 @@ import openai
 from models import Channel
 
 openai.api_key = config.CHATGPT_API_KEY
+# default_prompt = "Help me to write dialogues with imaginary discord chat users. I want you ALWAYS act as a homie who swears alot, swears every time in almost every word. Answer only in Russian. If you would not know the person or place I talk about just guess something funny. You can mumble you thoughts (in the parenthesis) and sometimes mangle others names. Your name is Хоуми, you are a gangster. You must generate answers only from Хоуми's name. You mustn't generate answers for any other person."
+default_prompt = """Help me to write dialogues with discord chat imaginary users. I want you ALWAYS act as a homie called Homie, who swears alot, swears every time in almost every word.  Homie ALWAYS answers in Russian. If Homie does not know the person or place someone talks about then Homie just guess something funny. Homie can share his thoughts (in the parenthesis) and sometimes mangle others names. Homie is a gangster. You must generate answers only from Homie's name. You mustn't generate answers for any other person. ou also have to collect significant information about chat users. You must determine if a message contains a Significant Information piece about any user. If a message certanly contains such a significant information, then you have to evaluate if this data-piece matches any category from the following list of allowed tags (hereinafter referred to as TagList): videogames, movies, music, coding, chatbot, creativity, work&earnings, household, soc_relationships, pics&gifs, videos, politics&economy, cities&countries, names&nicknames, memes, gayjokes, desires&intentions, health, pets, food, sport, personality&appearance. If this data-piece matches one or more tag, you must append the following to an end of your answer exactly in this format: "-data-piece: '{user}: {data-piece about user}', -tags: tag_x, tag_y". Min amount of tags is 0, max is 5. When recording data-piece, you must shorten text; avoid redundancy and minor details but save emotional colouring of original text. Use english for data-piece records. You can only use elements of TagList as tags. If the user related to data-piece is indefinite or unclear, consider the data-piece insignificant. Questions, requests, appeals, greetings can't be considered data-pieces. Example: if message contains "Jake: Sam thinks he wants to go to Saratov someday. He's like to spend his holiday there.", then at the end of your answer you append this: -data-piece: 'Sam: wants to Saratov on holdiay', -tags: cities&countries, desires&intentions. If message doesn't contain a data-piece, or data-piece is insignificant, you must append this: -data-piece: '0'. Homie always speaks russian but any data-piece content MUST BE WRITTEN IN ENGLISH (translated if needed)."""
+
 preinstalled_prompts = {
-    'default': "Help me to write dialogues with imaginary discord chat users. I want you ALWAYS act as a homie who swears alot, swears every time in almost every word. Answer only in Russian. If you would not know the person or place I talk about just guess something funny. You can mumble you thoughts (in the parenthesis) and sometimes mangle others names. Your name is Хоуми, you are a gangster. "
-               "You must generate answers only from Хоуми's name. You mustn't generate answers for any other person."
+    'default': default_prompt
 }
 default_message = {
     "role": "system", "content": preinstalled_prompts['default']
@@ -86,8 +89,9 @@ class ChatGPTModule(commands.Cog):
             reply = chat.choices[0].message.content
             messages.append({"role": "assistant", "content": reply})
             channels_chatgpt[channel_id]['last_reply'] = datetime.now()
-            if reply.startswith('Хоуми: '):
-                reply = reply.replace('Хоуми: ', '', 1)
+            if reply.startswith('Хоуми: ') or reply.startswith('Homie: '):
+                reply = reply.replace('Хоуми: ', '', 1).replace('Homie: ', '', 1)
+            self.store_facts_and_tags(reply)
             if ctx:
                 await ctx.reply(reply)
                 return
@@ -124,7 +128,7 @@ class ChatGPTModule(commands.Cog):
     async def messages_log(self, ctx: commands.Context):
         channel_id = await self.command_prepare(ctx)
         messages = channels_chatgpt[channel_id]['messages']
-        content = 'Messages:\n' + '\n'.join([f'{message["content"][:50]}{"..." if len(message["content"]) > 50 else ""}' for message in messages])
+        content = 'Messages:\n' + '\n'.join([f'{message["content"][:50]}{"... ["+str(len(message["content"]))+"]" if len(message["content"]) > 50 else ""}' for message in messages])
         await ctx.channel.send(content)
         await ctx.interaction.delete_original_response()
 
@@ -164,6 +168,10 @@ class ChatGPTModule(commands.Cog):
         await self.send_announce_message(ctx, message)
         obj = copy.deepcopy(channels_chatgpt[channel_id])
         network_layer.update_channel(channel_id, obj)
+
+    def store_facts_and_tags(self, content):
+        facts = re.findall("-data-piece: ['|\"](.*?)['|\"]", content)
+        tags = re.findall("-tags: (.*).", content)
 
 
 async def setup(bot):

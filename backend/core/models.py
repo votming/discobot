@@ -99,3 +99,13 @@ class Ranking(models.Model):
 
     class Meta:
         unique_together = [['movie', 'user']]
+
+
+# class ChatLog(models.Model):
+#     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='chat_logs')
+#     message = models.CharField()
+#     tags = models.CharField()
+
+
+#class Facts(models.Model):
+    #chat_log
