@@ -122,7 +122,6 @@ class ChatGPTModule(commands.Cog):
             facts = network_layer.get_facts_about_user(ctx.author.id)
             print(f'{facts}')
             content = '\n'.join([f'[{fact["id"]}] {fact["fact"]} (`{fact["tags"]}`) `{fact["created_at"][:10] if "created_at" in fact else "-"}`' for fact in facts])
-            await ctx.interaction.delete_original_response()
             await ctx.send(content)
         except Exception as ex:
             print(ex)
