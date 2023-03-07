@@ -133,6 +133,25 @@ def update_channel(channel_id, obj):
     requests.patch(f'http://127.0.0.1:{BACKEND_PORT}/api/channel/{channel_id}', json={'config': obj})
 
 
+@log_api_call
+def register_chat_log(channel_id, user_id, content, facts):
+    data = {
+        'user': user_id,
+        'channel': channel_id,
+        'message': content,
+    }
+    response = requests.post(f'http://127.0.0.1:{BACKEND_PORT}/api/chat_log', json=data)
+    data = response.json()
+    if response.status_code == 201:
+        facts = [{**fact, 'chat_log': data['id']} for fact in facts]
+        response2 = requests.post(f'http://127.0.0.1:{BACKEND_PORT}/api/chat_log/facts', json=facts)
+
+
+@log_api_call
+def get_facts_about_user(user_id):
+    response = requests.get(f'http://127.0.0.1:{BACKEND_PORT}/api/user/{user_id}/facts')
+    return response.json()
+
 def handshake():
     try:
         response = requests.get(f'http://127.0.0.1:{BACKEND_PORT}/api/handshake')

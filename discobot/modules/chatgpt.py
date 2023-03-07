@@ -68,11 +68,11 @@ class ChatGPTModule(commands.Cog):
 
         print(f"{not channel_config['silent_mode']} and {can_answer_to_random_message} and {next_reply_at < datetime.now()}")
         if 'хоуми' in content.lower() or self.bot.user in message.mentions:
-            await self.send_chatgpt_reply(messages, message.channel)
+            await self.send_chatgpt_reply(messages, message.channel, user=message.author)
         elif not channel_config['silent_mode'] and can_answer_to_random_message and next_reply_at < datetime.now():
-            await self.send_chatgpt_reply(messages, message.channel)
+            await self.send_chatgpt_reply(messages, message.channel, user=message.author)
 
-    async def send_chatgpt_reply(self, messages, channel=None, ctx=None):
+    async def send_chatgpt_reply(self, messages, channel=None, ctx=None, user=None):
         try:
             if not channel:
                 channel = ctx.channel
@@ -91,7 +91,8 @@ class ChatGPTModule(commands.Cog):
             channels_chatgpt[channel_id]['last_reply'] = datetime.now()
             if reply.startswith('Хоуми: ') or reply.startswith('Homie: '):
                 reply = reply.replace('Хоуми: ', '', 1).replace('Homie: ', '', 1)
-            self.store_facts_and_tags(reply)
+            if user:
+                self.store_facts_and_tags(channel, user, reply)
             if ctx:
                 await ctx.reply(reply)
                 return
@@ -113,6 +114,18 @@ class ChatGPTModule(commands.Cog):
         messages = channels_chatgpt[channel_id]['messages']
         ghost_messages = [messages[0], {"role": 'user', "content": text}]
         await self.send_chatgpt_reply(ghost_messages, ctx=ctx)
+
+    @commands.hybrid_command(name='get_facts', description='Show the facts bot knows about you')
+    async def get_facts(self, ctx: commands.Context):
+        try:
+            channel_id = await self.command_prepare(ctx)
+            facts = network_layer.get_facts_about_user(ctx.author.id)
+            print(f'{facts}')
+            content = '\n'.join([f'[{fact["id"]}] {fact["fact"]} (`{fact["tags"]}`) `{fact["created_at"][:10] if "created_at" in fact else "-"}`' for fact in facts])
+            await ctx.interaction.delete_original_response()
+            await ctx.send(content)
+        except Exception as ex:
+            print(ex)
 
     @commands.hybrid_command(name='new_prompt', description='Generate new prompt for the bot (also deletes whole history log)')
     async def new_prompt(self, ctx: commands.Context, prompt: str):
@@ -169,9 +182,11 @@ class ChatGPTModule(commands.Cog):
         obj = copy.deepcopy(channels_chatgpt[channel_id])
         network_layer.update_channel(channel_id, obj)
 
-    def store_facts_and_tags(self, content):
-        facts = re.findall("-data-piece: ['|\"](.*?)['|\"]", content)
-        tags = re.findall("-tags: (.*).", content)
+    def store_facts_and_tags(self, channel, user, content):
+        facts = re.findall("data-piece: ['|\"](.*)['|\"](.*)tags: (.*)[.?]", content)
+        facts = [{'fact': fact[0], 'tags': fact[2]} for fact in facts]
+        result = network_layer.register_chat_log(channel.id, user.id, content, facts)
+        print(f'RESULT: {result}')
 
 
 async def setup(bot):

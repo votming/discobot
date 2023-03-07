@@ -1,10 +1,13 @@
 from django.contrib import admin
 from django.urls import path, include
 
+from core.serializers import FactSerializer
 from core.views.channel import ChannelViewSet
+from core.views.chat_log import ChatLogViewSet, FactViewSet
 from core.views.guilds import GuildsViewSet
 from core.views.movies import MoviesViewSet
 from core.views.sessions import SessionsViewSet
+from core.views.user import UserViewSet
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -14,6 +17,12 @@ urlpatterns = [
 
     path('api/channel', ChannelViewSet.as_view({'post': 'create'})),
     path('api/channel/<pk>', ChannelViewSet.as_view({'get': 'retrieve', 'patch': 'update'})),
+
+    path('api/chat_log', ChatLogViewSet.as_view({'get': 'retrieve', 'post': 'create'})),
+    path('api/chat_log/facts', FactViewSet.as_view({'get': 'retrieve', 'post': 'create'})),
+    path('api/chat_log/<pk>', ChatLogViewSet.as_view({'get': 'retrieve'})),
+
+    path('api/user/<pk>/facts', UserViewSet.as_view({'get': 'get_facts', 'post': 'create'})),
 
     path('api/session', SessionsViewSet.as_view({'post': 'create'})),
     path('api/session/by_guild/<guild_id>', SessionsViewSet.as_view({'get': 'list'})),

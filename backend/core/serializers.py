@@ -1,6 +1,8 @@
 from rest_framework import serializers
+from rest_framework import status
+from rest_framework.response import Response
 
-from core.models import Movie, Guild, User, Ranking, Session, Channel
+from core.models import Movie, Guild, User, Ranking, Session, Channel, ChatLog, Fact
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -40,6 +42,20 @@ class ChannelSerializer(serializers.ModelSerializer):
     guild = serializers.PrimaryKeyRelatedField(required=False, queryset=Guild.objects.all())
     class Meta:
         model = Channel
+        fields = '__all__'
+
+
+class ChatLogSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ChatLog
+        fields = '__all__'
+
+
+class FactSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Fact
         fields = '__all__'
 
 

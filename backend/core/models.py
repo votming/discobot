@@ -101,11 +101,18 @@ class Ranking(models.Model):
         unique_together = [['movie', 'user']]
 
 
-# class ChatLog(models.Model):
-#     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='chat_logs')
-#     message = models.CharField()
-#     tags = models.CharField()
+class ChatLog(models.Model):
+    channel = models.ForeignKey(Channel, on_delete=models.CASCADE, related_name='chat_logs')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='chat_logs')
+    message = models.CharField(max_length=10000)
+    created_at = models.DateTimeField(auto_now=False, auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True, auto_now_add=False)
 
 
-#class Facts(models.Model):
-    #chat_log
+
+class Fact(models.Model):
+    chat_log = models.ForeignKey(ChatLog, on_delete=models.CASCADE, related_name='facts')
+    fact = models.CharField(max_length=500)
+    tags = models.CharField(max_length=250)
+    created_at = models.DateTimeField(auto_now=False, auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True, auto_now_add=False)
