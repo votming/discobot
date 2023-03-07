@@ -93,6 +93,7 @@ class ChatGPTModule(commands.Cog):
                 reply = reply.replace('Хоуми: ', '', 1).replace('Homie: ', '', 1)
             if user:
                 self.store_facts_and_tags(channel, user, reply)
+            reply = self.remove_facts(reply)
             if ctx:
                 await ctx.reply(reply)
                 return
@@ -184,8 +185,15 @@ class ChatGPTModule(commands.Cog):
     def store_facts_and_tags(self, channel, user, content):
         facts = re.findall("data-piece: ['|\"](.*)['|\"](.*)tags: (.*)[.?]", content)
         facts = [{'fact': fact[0], 'tags': fact[2]} for fact in facts]
-        result = network_layer.register_chat_log(channel.id, user.id, content, facts)
+        result = network_layer.register_chat_log(channel.id, user.id, self.remove_facts(content), facts)
         print(f'RESULT: {result}')
+
+    def remove_facts(self, content):
+        facts = re.findall('( ?- ?data-piece.*)', content)
+        message = content
+        for fact in facts:
+            message = message.replace(fact, '')
+        return message
 
 
 async def setup(bot):
