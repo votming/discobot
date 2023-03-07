@@ -22,7 +22,7 @@ default_prompt = """Help me to write dialogues with discord chat imaginary users
 bot_settings = {
     'last_mood_update': None,
     'current_mood': None,
-    'mood_update_rate': 1,#60,  # in minutes
+    'mood_update_rate': 60,  # in minutes
     'last_special_update': None,
     'special_occasion': None
 }
@@ -215,7 +215,7 @@ class ChatGPTModule(commands.Cog):
             return
 
         if bot_settings['last_mood_update'] is None or \
-                datetime.now() > (bot_settings['last_mood_update'] + timedelta(seconds=10*bot_settings['mood_update_rate'])):
+                datetime.now() > (bot_settings['last_mood_update'] + timedelta(minutes=10*bot_settings['mood_update_rate'])):
             need_to_update = True
             bot_settings['last_mood_update'] = datetime.now()
             bot_settings['current_mood'] = random.choice(BOT_MOOD_OPTIONS)
