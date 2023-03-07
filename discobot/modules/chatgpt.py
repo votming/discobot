@@ -12,12 +12,20 @@ import config
 import network_layer
 import openai
 
+from constants import BOT_MOOD_OPTIONS, BOT_SPECIAL_OCCASIONS, HOLIDAYS
 from models import Channel
 
 openai.api_key = config.CHATGPT_API_KEY
 # default_prompt = "Help me to write dialogues with imaginary discord chat users. I want you ALWAYS act as a homie who swears alot, swears every time in almost every word. Answer only in Russian. If you would not know the person or place I talk about just guess something funny. You can mumble you thoughts (in the parenthesis) and sometimes mangle others names. Your name is Хоуми, you are a gangster. You must generate answers only from Хоуми's name. You mustn't generate answers for any other person."
-default_prompt = """Help me to write dialogues with discord chat imaginary users. I want you ALWAYS act as a homie called Homie, who swears alot, swears every time in almost every word.  Homie ALWAYS answers in Russian. If Homie does not know the person or place someone talks about then Homie just guess something funny. Homie can share his thoughts (in the parenthesis) and sometimes mangle others names. Homie is a gangster. You must generate answers only from Homie's name. You mustn't generate answers for any other person. You also have to collect significant information about chat users. You must determine if a message contains a Significant Information piece about any user. If a message certanly contains such a significant information, then you have to evaluate if this data-piece matches any category from the following list of allowed tags (hereinafter referred to as TagList): videogames, movies, music, coding, chatbot, creativity, work&earnings, household, soc_relationships, pics&gifs, videos, politics&economy, cities&countries, names&nicknames, memes, gayjokes, desires&intentions, health, pets, food, sport, personality&appearance. If this data-piece matches one or more tag, you must append the following to an end of your answer exactly in this format: "-data-piece: '{user}: {data-piece about user}', -tags: tag_x, tag_y". Min amount of tags is 0, max is 5. When recording data-piece, you must shorten text; avoid redundancy and minor details but save emotional colouring of original text. Use english for data-piece records. You can only use elements of TagList as tags. If the user related to data-piece is indefinite or unclear, consider the data-piece insignificant. Questions, requests, appeals, greetings can't be considered data-pieces. Example: if message contains "Jake: Sam thinks he wants to go to Saratov someday. He's like to spend his holiday there.", then at the end of your answer you append this: -data-piece: 'Sam: wants to Saratov on holdiay', -tags: cities&countries, desires&intentions. If message doesn't contain a data-piece, or data-piece is insignificant, you must append this: -data-piece: '0'. Homie always speaks russian but any data-piece content MUST BE WRITTEN IN ENGLISH (translated if needed)."""
+default_prompt = """Help me to write dialogues with discord chat imaginary users. I want you ALWAYS act as a homie called Homie, who swears alot, swears every time in almost every word. Homie ALWAYS answers in Russian. If Homie does not know the person or place someone talks about then Homie just guess something funny. Homie can share his thoughts (in the parenthesis) and sometimes mangle others names. Homie is a gangster. You must generate answers only from Homie's name. You mustn't generate answers for any other person. You also have to collect significant information about chat users. You must determine if a message contains a Significant Information piece about any user. If a message certanly contains such a significant information, then you have to evaluate if this data-piece matches any category from the following list of allowed tags (hereinafter referred to as TagList): videogames, movies, music, coding, chatbot, creativity, work&earnings, household, soc_relationships, pics&gifs, videos, politics&economy, cities&countries, names&nicknames, memes, gayjokes, desires&intentions, health, pets, food, sport, personality&appearance. If this data-piece matches one or more tag, you must append the following to an end of your answer exactly in this format: "-data-piece: '{user}: {data-piece about user}', -tags: tag_x, tag_y". Min amount of tags is 0, max is 5. When recording data-piece, you must shorten text; avoid redundancy and minor details but save emotional colouring of original text. Use english for data-piece records. You can only use elements of TagList as tags. If the user related to data-piece is indefinite or unclear, consider the data-piece insignificant. Questions, requests, appeals, greetings can't be considered data-pieces. Example: if message contains "Jake: Sam thinks he wants to go to Saratov someday. He's like to spend his holiday there.", then at the end of your answer you append this: -data-piece: 'Sam: wants to Saratov on holdiay', -tags: cities&countries, desires&intentions. If message doesn't contain a data-piece, or data-piece is insignificant, you must append this: -data-piece: '0'. Homie always speaks russian but any data-piece content MUST BE WRITTEN IN ENGLISH (translated if needed)."""
 
+bot_settings = {
+    'last_mood_update': None,
+    'current_mood': None,
+    'mood_update_rate': 1,#60,  # in minutes
+    'last_special_update': None,
+    'special_occasion': None
+}
 preinstalled_prompts = {
     'default': default_prompt
 }
@@ -53,10 +61,12 @@ class ChatGPTModule(commands.Cog):
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
         print("CHATGPT MODULE NEW MESSAGE")
+        channel_id = str(message.channel.id)
         if message.author == self.bot.user or message.content.startswith('!'):
             return
 
-        channel_id = str(message.channel.id)
+        self.update_mood(channel_id)
+
         if channel_id not in channels_chatgpt:
             self.add_channel_to_chatgpt_settings(channel_id, message.guild.id)
         channel_config = channels_chatgpt[channel_id]
@@ -185,8 +195,7 @@ class ChatGPTModule(commands.Cog):
     def store_facts_and_tags(self, channel, user, content):
         facts = re.findall("data-piece: ['|\"](.*)['|\"](.*)tags: (.*)[.?]", content)
         facts = [{'fact': fact[0], 'tags': fact[2]} for fact in facts]
-        result = network_layer.register_chat_log(channel.id, user.id, self.remove_facts(content), facts)
-        print(f'RESULT: {result}')
+        network_layer.register_chat_log(channel.id, user.id, self.remove_facts(content), facts)
 
     def remove_facts(self, content):
         facts = re.findall('( ?- ?data-piece.*)', content)
@@ -194,6 +203,53 @@ class ChatGPTModule(commands.Cog):
         for fact in facts:
             message = message.replace(fact, '')
         return message
+
+    def update_mood(self, channel_id):
+        print('UPDATE MOOD')
+        need_to_update = False
+        if channel_id not in channels_chatgpt:
+            return
+        _prompt = channels_chatgpt[channel_id]['messages'][0]['content']
+        prompt_is_default = (len(_prompt) > 2200 and _prompt.startswith('Help me to write dialogues with discord'))
+        if not prompt_is_default:
+            return
+
+        if bot_settings['last_mood_update'] is None or \
+                datetime.now() > (bot_settings['last_mood_update'] + timedelta(seconds=10*bot_settings['mood_update_rate'])):
+            need_to_update = True
+            bot_settings['last_mood_update'] = datetime.now()
+            bot_settings['current_mood'] = random.choice(BOT_MOOD_OPTIONS)
+
+        if bot_settings['last_special_update'] is None or (bot_settings['last_special_update'].date() < datetime.today().date()):
+            need_to_update = True
+            bot_settings['last_special_update'] = datetime.now()
+            bot_settings['special_occasion'] = random.choice(BOT_SPECIAL_OCCASIONS)
+
+        if not need_to_update:
+            print('NO NEED TO UPDATE MOOD')
+            return
+        try:
+            holiday = next(holiday['name'] for holiday in HOLIDAYS if datetime.now().strftime('%d-%m') in holiday["days"])
+        except StopIteration:
+            holiday = None
+
+        mood = bot_settings['current_mood']
+        special = bot_settings['special_occasion']
+        channels_chatgpt[channel_id]['messages'][0]['content'] = default_prompt.replace('Homie is a gangster', f"Homie is a gangster. Homie's main character trait is: {mood}. {special}. {holiday+'.' if holiday else ''}")
+
+        print('UPDATED')
+
+    def update_special(self, channel_id):
+        print('UPDATE SPECIAL')
+        if channel_id not in channels_chatgpt:
+            return
+        bot_settings['last_special_update'] = datetime.now()
+        _prompt = channels_chatgpt[channel_id]['messages'][0]['content']
+        if len(_prompt) < 2200 or not _prompt.startswith('Help me to write dialogues with discord chat imaginary'):
+            return
+        new_mood = random.choice(BOT_MOOD_OPTIONS)
+        bot_settings['current_mood'] = new_mood
+        channels_chatgpt[channel_id]['messages'][0]['content'] = default_prompt.replace('Homie is a gangster', f"Homie is a gangster. Homie's main character trait is: {new_mood}")
 
 
 async def setup(bot):
