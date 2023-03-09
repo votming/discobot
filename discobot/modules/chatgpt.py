@@ -114,11 +114,11 @@ class ChatGPTModule(commands.Cog):
 
     def add_channel_to_chatgpt_settings(self, channel_id, guild_id):
         channel: Channel = network_layer.get_channel(channel_id, guild_id)
-        if 'message' in channel.config and len(channel.config['messages'][0]) > 0:
+        if 'messages' in channel.config and len(channel.config['messages'][0]) > 0:
             channel.config['messages'] = [channel.config['messages'][0]]
         else:
             channel.config['messages'] = [default_message]
-        channels_chatgpt[channel_id] = {**default_channel_settings, **channel.config}  # {'last_reply': datetime.now(), 'messages': [default_message]}
+        channels_chatgpt[channel_id] = {**default_channel_settings, **channel.config}
 
     async def send_announce_message(self, ctx: commands.Context, text):
         channel_id = str(ctx.channel.id)
@@ -143,7 +143,7 @@ class ChatGPTModule(commands.Cog):
             channel_id = await self.command_prepare(ctx)
             new_prompt = preinstalled_prompts[prompt] if prompt in preinstalled_prompts else prompt
             channels_chatgpt[channel_id]['messages'] = [{"role": "system", "content": new_prompt}]
-            await self.send_announce_message(ctx, 'Поприветствуй всех в двух предложениях')
+            await self.command_response(ctx, f'Поприветствуй всех в двух предложениях')
         except Exception as ex:
             print(ex)
 
