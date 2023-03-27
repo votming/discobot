@@ -235,7 +235,7 @@ class ChatGPTModule(commands.Cog):
 
         mood = bot_settings['current_mood']
         special = bot_settings['special_occasion']
-        channels_chatgpt[channel_id]['messages'][0]['content'] = default_prompt.replace('Homie is a gangster', f"Homie is a gangster. Homie's main character trait is: {mood}. {special}. {'Today is '+holiday+'.' if holiday else ''}")
+        channels_chatgpt[channel_id]['messages'][0]['content'] = default_prompt.replace('Homie is a gangster', f"Homie is a gangster. Homie's main character trait is: {mood}. {special}. {'About the holiday - today is '+holiday if holiday else ''}")
 
         print('UPDATED')
 
