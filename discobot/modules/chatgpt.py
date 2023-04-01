@@ -109,6 +109,10 @@ class ChatGPTModule(commands.Cog):
                 return
             await channel.send(reply)
         except Exception as ex:
+            if str(ex).startswith("This model's maximum context length is"):
+                messages[1:2] = []
+                await self.send_chatgpt_reply(messages, channel, ctx, user)
+                return
             await channel.send(ex)
             print(f'ERROR! MESSAGES COUNT: {len(messages)}; CHARACTERS: {len("".join(messages))}')
 
