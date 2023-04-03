@@ -96,7 +96,7 @@ class ChatGPTModule(commands.Cog):
                 messages[1:3] = []
                 messages_characters = ' '.join([message['content'] for message in messages])
             chat = openai.ChatCompletion.create(model='gpt-3.5-turbo', messages=messages, n=1)
-            if chat.choices[0].finish_reason != 'stop1':
+            if chat.choices[0].finish_reason != 'stop':
                 raise Exception("This model's maximum context length is full")
             reply = chat.choices[0].message.content
             messages.append({"role": "assistant", "content": reply})
