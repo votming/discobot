@@ -95,7 +95,7 @@ class ChatGPTModule(commands.Cog):
             while len(messages_characters) > 9000:
                 messages[1:3] = []
                 messages_characters = ' '.join([message['content'] for message in messages])
-            chat = openai.ChatCompletion.create(model='gpt-3.5-turbo', messages=messages, n=1)
+            chat = openai.ChatCompletion.create(model='gpt-4o', messages=messages, n=1)
             if chat.choices[0].finish_reason != 'stop':
                 raise Exception("This model's maximum context length is full")
             reply = chat.choices[0].message.content
