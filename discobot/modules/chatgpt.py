@@ -16,6 +16,7 @@ from constants import BOT_MOOD_OPTIONS, BOT_SPECIAL_OCCASIONS, HOLIDAYS
 from models import Channel
 
 openai.api_key = config.CHATGPT_API_KEY
+openai.api_base = config.CHATGPT_API_BASE
 # default_prompt = "Help me to write dialogues with imaginary discord chat users. I want you ALWAYS act as a homie who swears alot, swears every time in almost every word. Answer only in Russian. If you would not know the person or place I talk about just guess something funny. You can mumble you thoughts (in the parenthesis) and sometimes mangle others names. Your name is Хоуми, you are a gangster. You must generate answers only from Хоуми's name. You mustn't generate answers for any other person."
 default_prompt = """Help me to write dialogues with discord chat imaginary users. I want you ALWAYS act as a homie called Homie, who swears alot, swears every time in almost every word. Homie ALWAYS answers in Russian. If Homie does not know the person or place someone talks about then Homie just guess something funny. Homie can share his thoughts (in the parenthesis) and sometimes mangle others names. Homie is a gangster. You must generate answers only from Homie's name. You mustn't generate answers for any other person"""
 
@@ -95,7 +96,7 @@ class ChatGPTModule(commands.Cog):
             while len(messages_characters) > 9000:
                 messages[1:3] = []
                 messages_characters = ' '.join([message['content'] for message in messages])
-            chat = openai.ChatCompletion.create(model='gpt-4o', messages=messages, n=1)
+            chat = openai.ChatCompletion.create(model=config.CHATGPT_MODEL, messages=messages, n=1)
             if chat.choices[0].finish_reason != 'stop':
                 raise Exception("This model's maximum context length is full")
             reply = chat.choices[0].message.content
